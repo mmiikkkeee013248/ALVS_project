@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>Контакты (Flask + PostgreSQL)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: #f3f4f6;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 32px auto;
+        background: white;
+        border-radius: 12px;
+        padding: 24px 28px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+      }
+
+      h1 {
+        margin-top: 0;
+        margin-bottom: 16px;
+        font-size: 24px;
+      }
+
+      .subtitle {
+        margin-top: 0;
+        margin-bottom: 24px;
+        color: #6b7280;
+      }
+
+      .flash {
+        padding: 10px 12px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        font-size: 14px;
+      }
+
+      .flash-success {
+        background: #ecfdf3;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+      }
+
+      .flash-error {
+        background: #fef2f2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+      }
+
+      form.inline {
+        display: inline;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 24px;
+      }
+
+      th,
+      td {
+        padding: 8px 10px;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 14px;
+      }
+
+      th {
+        text-align: left;
+        background: #f9fafb;
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+
+      input[type="text"],
+      input[type="email"] {
+        padding: 6px 8px;
+        border-radius: 6px;
+        border: 1px solid #d1d5db;
+        font-size: 14px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .actions {
+        display: flex;
+        gap: 6px;
+      }
+
+      button {
+        border-radius: 6px;
+        padding: 6px 10px;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+      }
+
+      .btn-primary {
+        background: #2563eb;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #1d4ed8;
+      }
+
+      .btn-secondary {
+        background: #e5e7eb;
+        color: #111827;
+      }
+
+      .btn-secondary:hover {
+        background: #d1d5db;
+      }
+
+      .btn-danger {
+        background: #ef4444;
+        color: white;
+      }
+
+      .btn-danger:hover {
+        background: #dc2626;
+      }
+
+      .add-form {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px dashed #e5e7eb;
+      }
+
+      .add-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 1.1fr auto;
+        gap: 8px;
+        align-items: center;
+      }
+
+      @media (max-width: 640px) {
+        .add-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Контакты</h1>
+      <p class="subtitle">Flask + PostgreSQL (минимальный пример CRUD)</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      {% for category, message in messages %}
+      <div
+        class="flash {{ 'flash-success' if category == 'success' else 'flash-error' }}"
+      >
+        {{ message }}
+      </div>
+      {% endfor %}
+      {% endif %}
+      {% endwith %}
+
+      {% if contacts %}
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Имя</th>
+            <th>Email</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in contacts %}
+          <tr>
+            <td>{{ c.id }}</td>
+            <td>
+              <form
+                class="inline"
+                method="post"
+                action="{{ url_for('edit', contact_id=c.id) }}"
+              >
+                <input
+                  type="text"
+                  name="name"
+                  value="{{ c.name }}"
+                  required
+                />
+            </td>
+            <td>
+                <input
+                  type="email"
+                  name="email"
+                  value="{{ c.email }}"
+                  required
+                />
+            </td>
+            <td>
+              <div class="actions">
+                  <button type="submit" class="btn-secondary">Сохранить</button>
+              </form>
+              <form
+                class="inline"
+                method="post"
+                action="{{ url_for('delete', contact_id=c.id) }}"
+              >
+                <button
+                  type="submit"
+                  class="btn-danger"
+                  onclick="return confirm('Удалить контакт {{ c.name }}?');"
+                >
+                  Удалить
+                </button>
+              </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p>Пока нет ни одного контакта.</p>
+      {% endif %}
+
+      <div class="add-form">
+        <h2>Добавить контакт</h2>
+        <form method="post" action="{{ url_for('add') }}">
+          <div class="add-grid">
+            <input
+              type="text"
+              name="name"
+              placeholder="Имя"
+              required
+            />
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              required
+            />
+            <button type="submit" class="btn-primary">Добавить</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
+
