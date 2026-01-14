@@ -14,11 +14,14 @@ class DummyDB:
     def __init__(self):
         self.contacts = []
         self._next_id = 1
+        self._initialized = False
 
     def init_db(self):
-        # В реальном коде создаётся таблица, здесь — ничего не делаем
-        self.contacts.clear()
-        self._next_id = 1
+        # В реальном коде создаётся таблица, здесь — только при первом вызове
+        if not self._initialized:
+            self.contacts.clear()
+            self._next_id = 1
+            self._initialized = True
 
     def get_all_contacts(self):
         return list(self.contacts)
@@ -88,9 +91,12 @@ def test_add_contact(client, dummy_db):
 
 
 def test_edit_contact(client, dummy_db):
-    # предварительно добавляем контакт через заглушку
+    # Сначала инициализируем БД (это вызовет init_db)
+    client.get("/")
+    # Теперь добавляем контакт через заглушку
     dummy_db.add_contact("Old Name", "old@example.com")
     contact_id = dummy_db.contacts[0].id
+    assert len(dummy_db.contacts) == 1
 
     resp = client.post(
         f"/edit/{contact_id}",
@@ -98,6 +104,8 @@ def test_edit_contact(client, dummy_db):
         follow_redirects=True,
     )
     assert resp.status_code == 200
+    # Проверяем, что контакт остался в списке после редактирования
+    assert len(dummy_db.contacts) == 1
     assert dummy_db.contacts[0].name == "New Name"
     assert dummy_db.contacts[0].email == "new@example.com"
 
