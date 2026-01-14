@@ -2,6 +2,7 @@ import re
 from flask import Flask, render_template, request, redirect, url_for, flash
 
 import db
+from logger import app_logger
 
 
 def create_app():
@@ -23,7 +24,9 @@ def create_app():
     def index():
         try:
             contacts = db.get_all_contacts()
+            app_logger.info(f"Загружено контактов: {len(contacts)}")
         except Exception as e:
+            app_logger.error(f"Ошибка при загрузке контактов: {str(e)}")
             flash(f"Ошибка при загрузке контактов: {str(e)}", "error")
             contacts = []
         return render_template("index.html", contacts=contacts)
@@ -42,8 +45,10 @@ def create_app():
 
         try:
             db.add_contact(name, email)
+            app_logger.info(f"Добавлен контакт: name='{name}', email='{email}'")
             flash("Контакт добавлен", "success")
         except Exception as e:
+            app_logger.error(f"Ошибка при добавлении контакта: name='{name}', email='{email}', error={str(e)}")
             flash(f"Ошибка при добавлении контакта: {str(e)}", "error")
         return redirect(url_for("index"))
 
@@ -61,8 +66,10 @@ def create_app():
 
         try:
             db.update_contact(contact_id, name, email)
+            app_logger.info(f"Обновлён контакт: id={contact_id}, name='{name}', email='{email}'")
             flash("Контакт обновлён", "success")
         except Exception as e:
+            app_logger.error(f"Ошибка при обновлении контакта: id={contact_id}, name='{name}', email='{email}', error={str(e)}")
             flash(f"Ошибка при обновлении контакта: {str(e)}", "error")
         return redirect(url_for("index"))
 
@@ -70,8 +77,10 @@ def create_app():
     def delete(contact_id: int):
         try:
             db.delete_contact(contact_id)
+            app_logger.info(f"Удалён контакт: id={contact_id}")
             flash("Контакт удалён", "success")
         except Exception as e:
+            app_logger.error(f"Ошибка при удалении контакта: id={contact_id}, error={str(e)}")
             flash(f"Ошибка при удалении контакта: {str(e)}", "error")
         return redirect(url_for("index"))
 
