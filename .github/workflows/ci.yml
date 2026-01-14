@@ -33,4 +33,5 @@ jobs:
 
     - name: Run tests
       run: |
-        PYTHONPATH=${{ github.workspace }} python -m pytest tests/test_web_app.py -v
+        export PYTHONPATH=$PWD
+        python -m pytest tests/test_web_app.py -v
