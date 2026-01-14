@@ -1,8 +1,30 @@
 import re
+import time
 from flask import Flask, render_template, request, redirect, url_for, flash
+from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
 
 import db
 from logger import app_logger
+
+# Метрики Prometheus
+http_requests_total = Counter(
+    'http_requests_total',
+    'Total number of HTTP requests',
+    ['method', 'path', 'status']
+)
+
+http_request_duration_seconds = Histogram(
+    'http_request_duration_seconds',
+    'Duration of HTTP requests in seconds',
+    ['method', 'path'],
+    buckets=[0.01, 0.05, 0.1, 0.5, 1, 2, 5]
+)
+
+http_response_time_seconds = Gauge(
+    'http_response_time_seconds',
+    'Last HTTP response time in seconds',
+    ['method', 'path']
+)
 
 
 def create_app():
@@ -19,6 +41,34 @@ def create_app():
         if not hasattr(app, "_db_initialized"):
             db.init_db()
             app._db_initialized = True
+
+    # Middleware для сбора метрик Prometheus
+    @app.before_request
+    def before_request():
+        request.start_time = time.time()
+
+    @app.after_request
+    def after_request(response):
+        # Пропускаем метрики endpoint
+        if request.path == '/metrics':
+            return response
+
+        duration = time.time() - request.start_time
+        method = request.method
+        path = request.path
+        status = str(response.status_code)
+
+        # Обновляем метрики
+        http_requests_total.labels(method=method, path=path, status=status).inc()
+        http_request_duration_seconds.labels(method=method, path=path).observe(duration)
+        http_response_time_seconds.labels(method=method, path=path).set(duration)
+
+        return response
+
+    # Endpoint для метрик Prometheus
+    @app.route('/metrics')
+    def metrics():
+        return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
 
     @app.route("/", methods=["GET"])
     def index():
