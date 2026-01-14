@@ -1,3 +1,4 @@
+import re
 from flask import Flask, render_template, request, redirect, url_for, flash
 
 import db
@@ -20,7 +21,11 @@ def create_app():
 
     @app.route("/", methods=["GET"])
     def index():
-        contacts = db.get_all_contacts()
+        try:
+            contacts = db.get_all_contacts()
+        except Exception as e:
+            flash(f"Ошибка при загрузке контактов: {str(e)}", "error")
+            contacts = []
         return render_template("index.html", contacts=contacts)
 
     @app.route("/add", methods=["POST"])
@@ -31,8 +36,15 @@ def create_app():
             flash("Имя и email обязательны для заполнения", "error")
             return redirect(url_for("index"))
 
-        db.add_contact(name, email)
-        flash("Контакт добавлен", "success")
+        if not validate_email(email):
+            flash("Некорректный формат email адреса", "error")
+            return redirect(url_for("index"))
+
+        try:
+            db.add_contact(name, email)
+            flash("Контакт добавлен", "success")
+        except Exception as e:
+            flash(f"Ошибка при добавлении контакта: {str(e)}", "error")
         return redirect(url_for("index"))
 
     @app.route("/edit/<int:contact_id>", methods=["POST"])
@@ -43,17 +55,35 @@ def create_app():
             flash("Имя и email обязательны для заполнения", "error")
             return redirect(url_for("index"))
 
-        db.update_contact(contact_id, name, email)
-        flash("Контакт обновлён", "success")
+        if not validate_email(email):
+            flash("Некорректный формат email адреса", "error")
+            return redirect(url_for("index"))
+
+        try:
+            db.update_contact(contact_id, name, email)
+            flash("Контакт обновлён", "success")
+        except Exception as e:
+            flash(f"Ошибка при обновлении контакта: {str(e)}", "error")
         return redirect(url_for("index"))
 
     @app.route("/delete/<int:contact_id>", methods=["POST"])
     def delete(contact_id: int):
-        db.delete_contact(contact_id)
-        flash("Контакт удалён", "success")
+        try:
+            db.delete_contact(contact_id)
+            flash("Контакт удалён", "success")
+        except Exception as e:
+            flash(f"Ошибка при удалении контакта: {str(e)}", "error")
         return redirect(url_for("index"))
 
     return app
+
+
+def validate_email(email: str) -> bool:
+    """
+    Простая валидация email адреса.
+    """
+    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    return re.match(pattern, email) is not None
 
 
 if __name__ == "__main__":
