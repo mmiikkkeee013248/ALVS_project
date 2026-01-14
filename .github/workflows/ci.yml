@@ -33,4 +33,4 @@ jobs:
 
     - name: Run tests
       run: |
-        pytest tests/test_web_app.py -v
+        PYTHONPATH=${{ github.workspace }} python -m pytest tests/test_web_app.py -v
