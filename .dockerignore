@@ -1,0 +1,59 @@
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+*.log
+app.log
+
+# Виртуальные окружения
+venv/
+.venv/
+env/
+.env
+
+# IDE/редакторы
+.vscode/
+.idea/
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# CI/CD
+.github/
+
+# Документация
+*.md
+!README.md
+
+# Тесты
+tests/
+
+# Кэш
+.cache/

@@ -160,8 +160,85 @@ pytest tests/test_db.py -v
 
 1. Проверяется код на соответствие стандартам (flake8)
 2. Запускаются автотесты (pytest)
+3. **Собирается Docker образ** (только для main ветки)
+4. **Публикуется образ в DockerHub** (только для main ветки)
 
 Статус выполнения можно посмотреть во вкладке **Actions** на GitHub.
+
+### Настройка публикации в DockerHub
+
+Для автоматической публикации образа в DockerHub необходимо добавить секреты в GitHub:
+
+1. Перейдите в Settings → Secrets and variables → Actions
+2. Добавьте следующие секреты:
+   - `DOCKERHUB_USERNAME` - ваш логин на DockerHub
+   - `DOCKERHUB_TOKEN` - токен доступа (создайте в DockerHub: Account Settings → Security → New Access Token)
+
+## Docker
+
+Проект полностью контейнеризирован с использованием Docker и Docker Compose.
+
+### Быстрый старт с Docker Compose
+
+Запуск всего стека (приложение + БД + мониторинг):
+
+```bash
+docker-compose up -d
+```
+
+Приложение будет доступно по адресу: `http://localhost:5000`
+
+Доступные сервисы:
+- **Flask приложение**: http://localhost:5000
+- **Grafana**: http://localhost:3000 (admin/admin)
+- **Prometheus**: http://localhost:9090
+- **PostgreSQL**: localhost:5432
+
+### Сборка Docker образа
+
+```bash
+docker build -t alvs-project:latest .
+```
+
+### Запуск контейнера
+
+```bash
+docker run -d \
+  --name flask-app \
+  -p 5000:5000 \
+  -e PG_HOST=your_postgres_host \
+  -e PG_PORT=5432 \
+  -e PG_DB=test_db \
+  -e PG_USER=postgres \
+  -e PG_PASSWORD=your_password \
+  alvs-project:latest
+```
+
+### Использование образа из DockerHub
+
+После настройки CI/CD образ автоматически публикуется в DockerHub:
+
+```bash
+docker pull ваш_username/alvs-project:latest
+docker run -d --name flask-app -p 5000:5000 \
+  -e PG_HOST=postgres_host \
+  -e PG_DB=test_db \
+  -e PG_USER=postgres \
+  -e PG_PASSWORD=password \
+  ваш_username/alvs-project:latest
+```
+
+### Docker Compose с мониторингом
+
+Файл `docker-compose.yml` включает:
+- Flask приложение
+- PostgreSQL база данных
+- Prometheus для метрик
+- Grafana для визуализации
+- Loki для логов
+- Promtail для сбора логов
+
+Все сервисы автоматически настроены и связаны между собой.
 
 ## Observability (Мониторинг)
 
