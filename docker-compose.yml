@@ -87,7 +87,7 @@ services:
     volumes:
       - loki_data:/loki
     ports:
-      - "3100:3100"
+      - "3101:3100"
     networks:
       - app-network
     restart: unless-stopped
