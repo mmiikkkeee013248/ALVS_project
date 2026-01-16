@@ -1,6 +1,26 @@
 version: '3.9'
 
 services:
+  # PostgreSQL база данных
+  postgres:
+    image: postgres:16-alpine
+    container_name: flask-postgres
+    environment:
+      POSTGRES_DB: ${PG_DB:-test_db}
+      POSTGRES_USER: ${PG_USER:-postgres}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
   # Flask приложение
   webapp:
     build:
@@ -8,15 +28,16 @@ services:
       dockerfile: Dockerfile
     container_name: flask-app
     environment:
-      PG_HOST: host.docker.internal
+      PG_HOST: postgres
       PG_PORT: 5432
       PG_DB: ${PG_DB:-test_db}
       PG_USER: ${PG_USER:-postgres}
       PG_PASSWORD: ${PG_PASSWORD:-postgres}
     ports:
-      - "5001:5000"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
     volumes:
       - ./app.log:/app/app.log
     networks:
@@ -34,7 +55,7 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
     ports:
-      - "9091:9090"
+      - "9090:9090"
     networks:
       - app-network
     restart: unless-stopped
@@ -51,7 +72,7 @@ services:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
     ports:
-      - "3001:3000"
+      - "3000:3000"
     depends_on:
       - prometheus
     networks:
@@ -66,7 +87,7 @@ services:
     volumes:
       - loki_data:/loki
     ports:
-      - "3101:3100"
+      - "3100:3100"
     networks:
       - app-network
     restart: unless-stopped
@@ -86,6 +107,7 @@ services:
     restart: unless-stopped
 
 volumes:
+  postgres_data:
   prometheus_data:
   grafana_data:
   loki_data:
