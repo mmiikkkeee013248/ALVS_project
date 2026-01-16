@@ -50,7 +50,7 @@ def dummy_db(monkeypatch):
     """
     from importlib import import_module
 
-    db_module = import_module("db")
+    db_module = import_module("app.db")
     db = DummyDB()
 
     monkeypatch.setattr(db_module, "init_db", db.init_db)

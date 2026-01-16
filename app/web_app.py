@@ -31,7 +31,10 @@ def create_app():
     """
     Фабрика приложения Flask, чтобы было удобно тестировать.
     """
-    app = Flask(__name__)
+    import os
+    # Определяем путь к директории templates относительно корня проекта
+    template_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates')
+    app = Flask(__name__, template_folder=template_dir)
     # Для flash-сообщений нужен секретный ключ (для простоты — константа)
     app.config["SECRET_KEY"] = "dev-secret-key"
 
