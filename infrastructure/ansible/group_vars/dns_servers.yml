@@ -1,0 +1,17 @@
+---
+# Переменные для DNS сервера (Bind9)
+dns_zone_name: "example.local"
+dns_server_ip: "{{ ansible_default_ipv4.address }}"
+dns_a_record_fqdn: "server.example.local"
+dns_ttl: 300
+
+# Переменные для тега my_dns (CNAME запись)
+dns_cname_alias: "alias.example.local"
+dns_cname_target: "server.example.local"
+
+# Настройки SOA записи
+dns_soa_serial: "2025011601"
+dns_soa_refresh: 3600
+dns_soa_retry: 900
+dns_soa_expire: 604800
+dns_soa_minimum: 86400

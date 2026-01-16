@@ -25,6 +25,8 @@ htmlcov/
 
 *.log
 app.log
+logs/
+!logs/.gitkeep
 
 # Виртуальные окружения
 venv/

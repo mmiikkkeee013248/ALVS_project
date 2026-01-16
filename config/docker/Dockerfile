@@ -36,7 +36,9 @@ WORKDIR /app
 COPY --from=builder /root/.local /home/appuser/.local
 
 # Копирование файлов приложения
-COPY --chown=appuser:appuser . .
+COPY --chown=appuser:appuser app/ ./app/
+COPY --chown=appuser:appuser templates/ ./templates/
+COPY --chown=appuser:appuser requirements.txt ./
 
 # Переключение на непривилегированного пользователя
 USER appuser
@@ -44,7 +46,8 @@ USER appuser
 # Переменные окружения
 ENV PATH=/home/appuser/.local/bin:$PATH \
     PYTHONUNBUFFERED=1 \
-    FLASK_APP=web_app.py
+    FLASK_APP=app.web_app \
+    PYTHONPATH=/app
 
 # Открытие порта
 EXPOSE 5000
@@ -54,4 +57,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:5000/')" || exit 1
 
 # Запуск приложения через Gunicorn
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "--access-logfile", "-", "--error-logfile", "-", "web_app:create_app()"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "--access-logfile", "-", "--error-logfile", "-", "app.web_app:create_app()"]

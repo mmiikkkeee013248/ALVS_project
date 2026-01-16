@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox, simpledialog
 
-from db import init_db, get_all_contacts, add_contact, update_contact, delete_contact
+from app.db import init_db, get_all_contacts, add_contact, update_contact, delete_contact
 
 
 class ContactsApp(tk.Tk):

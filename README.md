@@ -12,15 +12,31 @@
 - **Автоматическое тестирование** через pytest
 - **CI/CD конвейер** на GitHub Actions с проверкой кода и автотестами
 
-## Файлы проекта
+## Структура проекта
+
+Проект организован по принципу разделения ответственности. Подробнее см. [STRUCTURE.md](STRUCTURE.md)
+
+```
+ALVS_project/
+├── app/                    # Основное приложение Flask
+├── templates/              # HTML шаблоны
+├── tests/                  # Тесты
+├── config/                 # Конфигурационные файлы
+│   ├── docker/            # Docker конфигурация
+│   └── monitoring/        # Мониторинг (Prometheus, Grafana)
+├── infrastructure/         # Инфраструктура как код (Ansible)
+├── scripts/               # Скрипты подготовки
+├── docs/                  # Документация
+└── logs/                  # Логи приложения
+```
 
 ### Основные файлы приложения
 
-- **`web_app.py`** – веб-приложение на Flask с маршрутами для CRUD операций
-- **`db.py`** – модуль для подключения к PostgreSQL и работы с таблицей `contacts`
-- **`logger.py`** – модуль настройки логирования с ротацией файлов
+- **`app/web_app.py`** – веб-приложение на Flask с маршрутами для CRUD операций
+- **`app/db.py`** – модуль для подключения к PostgreSQL и работы с таблицей `contacts`
+- **`app/logger.py`** – модуль настройки логирования с ротацией файлов
 - **`templates/index.html`** – HTML-шаблон для веб-интерфейса
-- **`app.py`** – десктопное GUI-приложение на tkinter (опционально)
+- **`app/app.py`** – десктопное GUI-приложение на tkinter (опционально)
 
 ### Тестирование
 
@@ -30,6 +46,8 @@
 ### Конфигурация
 
 - **`requirements.txt`** – зависимости Python проекта
+- **`config/docker/`** – Docker конфигурация (Dockerfile, docker-compose.yml)
+- **`config/monitoring/`** – конфигурация мониторинга
 - **`.gitignore`** – файлы и директории, игнорируемые Git
 - **`.github/workflows/ci.yml`** – конфигурация CI/CD конвейера на GitHub Actions
 
@@ -98,7 +116,12 @@ PG_PASSWORD=ваш_пароль
 В каталоге проекта выполните:
 
 ```bash
-python web_app.py
+# Из корня проекта
+python -m app.web_app
+
+# Или установите PYTHONPATH
+export PYTHONPATH=$PWD
+python app/web_app.py
 ```
 
 При первом запуске автоматически создаётся таблица `contacts` (если её ещё нет).
@@ -183,7 +206,12 @@ pytest tests/test_db.py -v
 Запуск всего стека (приложение + БД + мониторинг):
 
 ```bash
+# Из директории config/docker
+cd config/docker
 docker-compose up -d
+
+# Или из корня проекта
+docker-compose -f config/docker/docker-compose.yml up -d
 ```
 
 Приложение будет доступно по адресу: `http://localhost:5000`

@@ -3,7 +3,7 @@
 Эти тесты требуют наличия настроенной PostgreSQL БД.
 """
 import pytest
-from db import init_db, get_all_contacts, add_contact, update_contact, delete_contact
+from app.db import init_db, get_all_contacts, add_contact, update_contact, delete_contact
 
 
 @pytest.fixture(scope="function")

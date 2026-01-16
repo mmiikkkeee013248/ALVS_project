@@ -3,8 +3,8 @@ import time
 from flask import Flask, render_template, request, redirect, url_for, flash
 from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
 
-import db
-from logger import app_logger
+from app import db
+from app.logger import app_logger
 
 # Метрики Prometheus
 http_requests_total = Counter(

@@ -2,7 +2,7 @@ import types
 
 import pytest
 
-from web_app import create_app
+from app.web_app import create_app
 
 
 class DummyDB:

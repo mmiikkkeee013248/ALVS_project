@@ -1,0 +1,105 @@
+---
+- name: Установка Bind9
+  ansible.builtin.apt:
+    name: bind9
+    state: present
+    update_cache: yes
+
+- name: Создание директории для зон DNS
+  ansible.builtin.file:
+    path: /etc/bind/zones
+    state: directory
+    owner: root
+    group: bind
+    mode: '0755'
+
+- name: Создание файла зоны DNS
+  ansible.builtin.template:
+    src: db.zone.j2
+    dest: /etc/bind/zones/db.{{ dns_zone_name }}
+    owner: root
+    group: bind
+    mode: '0644'
+  tags:
+    - untagged
+  notify: restart bind9
+
+- name: Настройка named.conf.local
+  ansible.builtin.template:
+    src: named.conf.local.j2
+    dest: /etc/bind/named.conf.local
+    owner: root
+    group: root
+    mode: '0644'
+  tags:
+    - untagged
+  notify: restart bind9
+
+- name: Проверка конфигурации named.conf
+  ansible.builtin.command:
+    cmd: named-checkconf
+  changed_when: false
+  tags:
+    - untagged
+    - my_dns
+
+- name: Проверка зоны DNS
+  ansible.builtin.command:
+    cmd: named-checkzone {{ dns_zone_name }} /etc/bind/zones/db.{{ dns_zone_name }}
+  changed_when: false
+  tags:
+    - untagged
+    - my_dns
+
+- name: Определение имени CNAME записи (без домена)
+  ansible.builtin.set_fact:
+    dns_cname_name: "{{ dns_cname_alias.split('.')[0] }}"
+
+- name: Добавление CNAME записи в зону
+  ansible.builtin.lineinfile:
+    path: /etc/bind/zones/db.{{ dns_zone_name }}
+    regexp: '^{{ dns_cname_name }}\s+IN\s+CNAME'
+    line: "{{ dns_cname_name }}    IN    CNAME    {{ dns_cname_target }}."
+    insertafter: '^@\s+IN\s+A'
+    backup: yes
+  when: dns_cname_alias is defined and dns_cname_target is defined
+  tags:
+    - my_dns
+  notify: restart bind9
+
+- name: Запуск и включение сервиса bind9
+  ansible.builtin.systemd:
+    name: bind9
+    state: started
+    enabled: true
+  tags:
+    - untagged
+    - my_dns
+
+- name: Проверка разрешения основного FQDN
+  ansible.builtin.command:
+    cmd: dig @{{ dns_server_ip }} {{ dns_a_record_fqdn }} +short
+  register: dns_check_a
+  changed_when: false
+  failed_when: false
+  tags:
+    - my_dns
+
+- name: Проверка разрешения CNAME FQDN
+  ansible.builtin.command:
+    cmd: dig @{{ dns_server_ip }} {{ dns_cname_alias }} +short
+  register: dns_check_cname
+  changed_when: false
+  failed_when: false
+  when: dns_cname_alias is defined
+  tags:
+    - my_dns
+
+- name: Вывод результатов проверки DNS
+  ansible.builtin.debug:
+    msg:
+      - "A-запись {{ dns_a_record_fqdn }} разрешается в: {{ dns_check_a.stdout_lines | default(['не удалось разрешить']) }}"
+      - "CNAME {{ dns_cname_alias }} разрешается в: {{ dns_check_cname.stdout_lines | default(['не удалось разрешить']) }}"
+  when: dns_cname_alias is defined
+  tags:
+    - my_dns
