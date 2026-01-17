@@ -2,8 +2,7 @@
 
 **Дата развертывания:** [ДД.ММ.ГГГГ]  
 **Сервер:** root@144.31.87.154  
-**Версия проекта:** [версия/коммит]  
-**Ответственный:** [Имя]
+
 
 ---
 
@@ -219,6 +218,34 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build we
 - Исправлен volume mapping: директория `logs` вместо файла `app.log`
 - Добавлен `env_file: .env` для загрузки переменных окружения
 - Исправлена ошибка с `start_time` в `after_request`
+
+---
+
+### Проблема: Prometheus не видит приложение, Grafana не видит Prometheus
+
+**Описание:** Prometheus на сервере (системный сервис) не видел приложение, развернутое в Docker, поэтому в Grafana не появлялся вариант Prometheus как Data Source.
+
+**Причины:**
+1. В конфигурации Prometheus не было job для flask-app
+2. В Grafana не был настроен Data Source для Prometheus
+3. URL в конфигурации Grafana указывал на `http://prometheus:9090` (Docker сервис), но Grafana запущена как системный сервис
+
+**Решение:**
+1. **Добавлен job в Prometheus:**
+   - Добавлен `flask-app` job в `/etc/prometheus/prometheus.yml`
+   - Target: `localhost:5000` (приложение доступно на хосте через порт 5000)
+   - Prometheus успешно собирает метрики: `health: "up"`
+
+2. **Настроен Data Source в Grafana:**
+   - Создан файл `/etc/grafana/provisioning/datasources/prometheus.yml`
+   - URL изменен на `http://localhost:9090` (для системного Prometheus)
+   - Data Source добавлен через Grafana API
+   - Prometheus теперь доступен в Grafana как Data Source
+
+**Результат:**
+- Prometheus собирает метрики с flask-app (job: flask-app, health: up)
+- Grafana видит Prometheus как Data Source
+- Можно создавать дашборды с метриками приложения
 
 ---
 
