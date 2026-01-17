@@ -229,6 +229,18 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build we
 
 ---
 
+### Проблема 7: Gunicorn Worker failed to boot
+
+**Описание:** Gunicorn не может загрузить приложение, ошибка `HaltServer 'Worker failed to boot.'`. Команды `docker compose` не работают из корня проекта.
+
+**Решение:** 
+- Добавлена обработка ошибок при создании `app` в `web_app.py` для детальной диагностики
+- Исправлены пути в скрипте развертывания (сохранение `PROJECT_ROOT`)
+- Добавлена улучшенная диагностика ошибок в логах
+- Для проверки логов использовать: `docker logs flask-app` или `cd config/docker && docker compose -f docker-compose.prod.yml logs webapp`
+
+---
+
 ## 8. Рекомендации
 
 ### Безопасность
