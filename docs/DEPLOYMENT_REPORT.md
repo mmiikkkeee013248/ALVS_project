@@ -249,7 +249,12 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build we
 **Решение:** 
 - Исправлена ошибка с `start_time`: добавлена проверка `hasattr(request, 'start_time')` в `after_request`
 - Добавлен `env_file: .env` в `docker-compose.prod.yml` для автоматической загрузки переменных окружения
-- Для подключения к PostgreSQL нужно использовать IP адрес сервера вместо `host.docker.internal`:
+- **Альтернативное решение для диагностики:** Добавлен PostgreSQL контейнер в `docker-compose.prod.yml`:
+  - PostgreSQL теперь запускается в Docker контейнере
+  - `PG_HOST` изменен на `postgres` (имя сервиса) для подключения внутри Docker сети
+  - PostgreSQL использует порт `5433` на хосте, чтобы не конфликтовать с системным PostgreSQL на порту `5432`
+  - Добавлен `depends_on` с `healthcheck` для ожидания готовности PostgreSQL
+- **Для использования внешнего PostgreSQL:**
   - Обновить `config/docker/.env`: `PG_HOST=144.31.87.154`
   - После изменения `.env` файла перезапустить контейнер: `docker compose -f docker-compose.prod.yml restart webapp`
   - Или использовать `network_mode: host` в docker-compose.prod.yml
