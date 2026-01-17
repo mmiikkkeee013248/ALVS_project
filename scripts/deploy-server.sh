@@ -196,17 +196,34 @@ $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml up -d --remove-orphans webapp
 echo -e "\n${YELLOW}6. Проверка статуса контейнеров...${NC}"
 $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml ps
 
-# 7. Проверка логов
-echo -e "\n${YELLOW}7. Последние логи приложения:${NC}"
-$DOCKER_COMPOSE_CMD -f docker-compose.prod.yml logs --tail=20 webapp
+# 7. Проверка подключения к PostgreSQL из контейнера
+echo -e "\n${YELLOW}7. Проверка подключения к PostgreSQL...${NC}"
+sleep 2
+if docker exec flask-app psql -h "${PG_HOST:-host.docker.internal}" -p "${PG_PORT:-5432}" -U "${PG_USER:-postgres}" -d "${PG_DB:-test_db}" -c "SELECT version();" > /dev/null 2>&1; then
+    echo -e "${GREEN}✓ Подключение к PostgreSQL успешно${NC}"
+else
+    echo -e "${YELLOW}⚠ Не удалось подключиться к PostgreSQL${NC}"
+    echo -e "${YELLOW}  Проверьте настройки в config/docker/.env${NC}"
+    echo -e "${YELLOW}  Если host.docker.internal не работает, используйте IP адрес сервера:${NC}"
+    SERVER_IP=$(hostname -I | awk '{print $1}' 2>/dev/null || echo "unknown")
+    echo -e "${YELLOW}    PG_HOST=$SERVER_IP${NC}"
+fi
 
-# 8. Проверка доступности
-echo -e "\n${YELLOW}8. Проверка доступности приложения...${NC}"
+# 8. Проверка логов
+echo -e "\n${YELLOW}8. Последние логи приложения:${NC}"
+$DOCKER_COMPOSE_CMD -f docker-compose.prod.yml logs --tail=30 webapp
+
+# 9. Проверка доступности
+echo -e "\n${YELLOW}9. Проверка доступности приложения...${NC}"
 sleep 3
 if curl -f http://localhost:5000 > /dev/null 2>&1; then
     echo -e "${GREEN}✓ Приложение доступно на http://localhost:5000${NC}"
 else
-    echo -e "${YELLOW}⚠ Приложение может быть еще не готово. Проверьте логи:${NC}"
+    echo -e "${YELLOW}⚠ Приложение не отвечает. Возможные причины:${NC}"
+    echo -e "${YELLOW}  1. Приложение еще запускается (подождите 10-15 секунд)${NC}"
+    echo -e "${YELLOW}  2. Ошибка подключения к PostgreSQL${NC}"
+    echo -e "${YELLOW}  3. Ошибка в коде приложения${NC}"
+    echo -e "${YELLOW}  Проверьте логи:${NC}"
     echo -e "  $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml logs webapp"
 fi
 

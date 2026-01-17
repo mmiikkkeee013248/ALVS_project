@@ -148,7 +148,9 @@ def validate_email(email: str) -> bool:
     return re.match(pattern, email) is not None
 
 
+# Создаем экземпляр приложения для Gunicorn
+app = create_app()
+
 if __name__ == "__main__":
-    app = create_app()
     app.run(debug=True)
 
