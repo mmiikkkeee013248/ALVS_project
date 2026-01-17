@@ -1,9 +1,33 @@
-# Production конфигурация для использования внешних утилит сервера
+# Production конфигурация
 # Использование: docker compose -f docker-compose.prod.yml up -d
 # Этот файл полностью независим и не наследует docker-compose.yml
+# ВАРИАНТ С POSTGRES В DOCKER (для диагностики проблем с подключением)
 
 services:
-  # Flask приложение - использует внешний PostgreSQL на хосте
+  # PostgreSQL база данных в Docker
+  postgres:
+    image: postgres:16-alpine
+    container_name: flask-postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${PG_DB:-test_db}
+      POSTGRES_USER: ${PG_USER:-postgres}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"  # Используем другой порт, чтобы не конфликтовать с системным PostgreSQL
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Flask приложение - использует PostgreSQL в Docker
   webapp:
     build:
       context: ../..
@@ -13,32 +37,27 @@ services:
     env_file:
       - .env
     environment:
-      # Подключение к внешнему PostgreSQL на хосте
-      # Используем host.docker.internal для доступа к хосту из контейнера
-      # Или можно использовать IP адрес сервера напрямую
-      # Переменные из .env файла будут использованы, если не указаны явно
-      PG_HOST: ${PG_HOST:-host.docker.internal}
+      # Подключение к PostgreSQL в Docker контейнере
+      # Используем имя сервиса postgres для подключения внутри Docker сети
+      PG_HOST: ${PG_HOST:-postgres}
       PG_PORT: ${PG_PORT:-5432}
       PG_DB: ${PG_DB:-test_db}
       PG_USER: ${PG_USER:-postgres}
       PG_PASSWORD: ${PG_PASSWORD:-postgres}
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
       - "5000:5000"
-    # Добавляем extra_hosts для доступа к хосту
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    # Используем network_mode: host для прямого доступа к хосту (альтернатива)
-    # network_mode: host
-    # Если используем network_mode: host, убираем networks и ports mapping
     volumes:
       - ../../logs:/app/logs
     networks:
       - app-network
     restart: unless-stopped
 
-# В production не используем:
-# - postgres (используем внешний на хосте)
-# - prometheus, grafana, loki, promtail (опционально, можно использовать внешние экземпляры)
+# Volumes для PostgreSQL
+volumes:
+  postgres_data:
 
 networks:
   app-network:
