@@ -81,14 +81,20 @@ df -h / | tail -n1
 REPO_URL="${1:-}"
 PROJECT_DIR="ALVS_project"
 
-if [ -d "$PROJECT_DIR" ]; then
+# Проверка, находимся ли мы уже внутри репозитория
+if [ -d ".git" ]; then
+    echo -e "\n${YELLOW}2. Обновление существующего репозитория...${NC}"
+    git pull || echo -e "${YELLOW}Предупреждение: не удалось обновить репозиторий${NC}"
+    # Остаемся в текущей директории
+elif [ -d "$PROJECT_DIR" ]; then
     echo -e "\n${YELLOW}2. Обновление существующего репозитория...${NC}"
     cd "$PROJECT_DIR"
     git pull || echo -e "${YELLOW}Предупреждение: не удалось обновить репозиторий${NC}"
 else
     if [ -z "$REPO_URL" ]; then
         echo -e "${RED}Ошибка: Репозиторий не найден и URL не указан.${NC}"
-        echo -e "Использование: $0 <repository_url>"
+        echo -e "Использование: $0 [repository_url]"
+        echo -e "Или запустите скрипт из директории проекта"
         exit 1
     fi
     
