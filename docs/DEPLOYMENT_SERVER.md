@@ -140,6 +140,38 @@ sudo nano /etc/postgresql/*/main/postgresql.conf
 sudo systemctl restart postgresql
 ```
 
+## Клонирование репозитория
+
+Перед развертыванием необходимо клонировать репозиторий на сервер.
+
+### Варианты клонирования
+
+**Вариант 1: HTTPS (рекомендуется для серверов без SSH ключей)**
+
+```bash
+# Для публичного репозитория
+git clone https://github.com/mmiikkkeee013248/ALVS_project.git
+
+# Для приватного репозитория (с Personal Access Token)
+git clone https://YOUR_TOKEN@github.com/mmiikkkeee013248/ALVS_project.git
+```
+
+**Вариант 2: SSH (если настроены SSH ключи)**
+
+```bash
+git clone git@github.com:mmiikkkeee013248/ALVS_project.git
+```
+
+### Создание Personal Access Token (для приватных репозиториев)
+
+Если репозиторий приватный и у вас нет SSH ключей:
+
+1. Перейдите в GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
+2. Создайте новый токен с правами `repo`
+3. Используйте токен в URL: `https://TOKEN@github.com/mmiikkkeee013248/ALVS_project.git`
+
+**Важно**: Не коммитьте токен в код! Используйте его только при клонировании.
+
 ## Развертывание
 
 ### Вариант 1: Автоматическое развертывание (рекомендуется)
@@ -148,13 +180,13 @@ sudo systemctl restart postgresql
 
 ```bash
 # Клонирование репозитория
-git clone <repository_url>
+git clone https://github.com/mmiikkkeee013248/ALVS_project.git
 cd ALVS_project
 
 # Сделать скрипт исполняемым
 chmod +x scripts/deploy-server.sh
 
-# Запуск развертывания
+# Запуск развертывания (можно указать URL репозитория, если нужно)
 ./scripts/deploy-server.sh
 ```
 
@@ -168,8 +200,12 @@ chmod +x scripts/deploy-server.sh
 #### Шаг 1: Клонирование репозитория
 
 ```bash
-git clone <repository_url>
+# Используйте HTTPS для публичного репозитория
+git clone https://github.com/mmiikkkeee013248/ALVS_project.git
 cd ALVS_project
+
+# Или для приватного репозитория с токеном:
+# git clone https://YOUR_TOKEN@github.com/mmiikkkeee013248/ALVS_project.git
 ```
 
 #### Шаг 2: Настройка переменных окружения
@@ -277,34 +313,36 @@ FROM python:3.12-alpine as builder
 ### Просмотр логов
 
 ```bash
-# Все логи
+# Все логи (используйте правильную команду для вашей версии)
+docker compose -f docker-compose.yml -f docker-compose.prod.yml logs webapp
+# или
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml logs webapp
 
 # Последние 50 строк
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml logs --tail=50 webapp
+docker compose -f docker-compose.yml -f docker-compose.prod.yml logs --tail=50 webapp
 
 # Логи в реальном времени
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml logs -f webapp
+docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f webapp
 ```
 
 ### Перезапуск приложения
 
 ```bash
 # Перезапуск
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml restart webapp
+docker compose -f docker-compose.yml -f docker-compose.prod.yml restart webapp
 
 # Пересборка и перезапуск
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build webapp
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build webapp
 ```
 
 ### Остановка приложения
 
 ```bash
 # Остановка
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml stop webapp
+docker compose -f docker-compose.yml -f docker-compose.prod.yml stop webapp
 
 # Остановка и удаление контейнера
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
+docker compose -f docker-compose.yml -f docker-compose.prod.yml down
 ```
 
 ### Обновление приложения
@@ -315,7 +353,7 @@ git pull
 
 # Пересборка и перезапуск
 cd config/docker
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build webapp
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build webapp
 ```
 
 ## Устранение неполадок
@@ -366,7 +404,9 @@ webapp:
 ### Проблема: Приложение не запускается
 
 ```bash
-# Проверка логов
+# Проверка логов (используйте правильную команду для вашей версии Docker Compose)
+docker compose -f docker-compose.yml -f docker-compose.prod.yml logs webapp
+# или
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml logs webapp
 
 # Проверка статуса контейнера
@@ -374,6 +414,20 @@ docker ps -a
 
 # Вход в контейнер для отладки
 docker exec -it flask-app /bin/bash
+```
+
+### Проблема: Docker Compose не найден
+
+Если установлен Docker Compose V2 (`docker compose`), но скрипт ищет V1 (`docker-compose`):
+
+Скрипт `deploy-server.sh` автоматически определяет доступную версию. Если проблема сохраняется, проверьте:
+
+```bash
+# Проверка Docker Compose V2
+docker compose version
+
+# Проверка Docker Compose V1
+docker-compose --version
 ```
 
 ## Безопасность

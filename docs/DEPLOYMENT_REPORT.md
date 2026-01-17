@@ -98,7 +98,7 @@
 
 ```bash
 # Команда клонирования
-git clone [repository_url]
+git clone https://github.com/mmiikkkeee013248/ALVS_project.git
 cd ALVS_project
 ```
 
@@ -114,10 +114,13 @@ cd ALVS_project
 ### Шаг 4: Сборка и запуск
 
 ```bash
-# Команды сборки и запуска
+# Команды сборки и запуска (используйте правильную команду для вашей версии)
 cd config/docker
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml build webapp
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d webapp
+docker compose -f docker-compose.yml -f docker-compose.prod.yml build webapp
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d webapp
+# или для V1:
+# docker-compose -f docker-compose.yml -f docker-compose.prod.yml build webapp
+# docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d webapp
 ```
 
 **Время сборки:** [например, 2 минуты]  
@@ -158,18 +161,20 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d webapp
 ### Полезные команды для управления
 
 ```bash
-# Просмотр логов
+# Просмотр логов (используйте правильную команду для вашей версии)
+docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f webapp
+# или
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml logs -f webapp
 
 # Перезапуск
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml restart webapp
+docker compose -f docker-compose.yml -f docker-compose.prod.yml restart webapp
 
 # Остановка
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
+docker compose -f docker-compose.yml -f docker-compose.prod.yml down
 
 # Обновление
 git pull
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build webapp
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build webapp
 ```
 
 ---
