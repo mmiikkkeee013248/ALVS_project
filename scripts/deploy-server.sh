@@ -147,6 +147,8 @@ fi
 # 5. Сборка и запуск контейнера
 echo -e "\n${YELLOW}5. Сборка и запуск Docker контейнера...${NC}"
 
+# Сохраняем путь к корню проекта
+PROJECT_ROOT=$(pwd)
 cd config/docker
 
 # Остановка существующих контейнеров (если есть)
@@ -211,7 +213,14 @@ fi
 
 # 8. Проверка логов
 echo -e "\n${YELLOW}8. Последние логи приложения:${NC}"
-$DOCKER_COMPOSE_CMD -f docker-compose.prod.yml logs --tail=30 webapp
+$DOCKER_COMPOSE_CMD -f docker-compose.prod.yml logs --tail=50 webapp
+
+# Проверка ошибок импорта/загрузки
+echo -e "\n${YELLOW}Проверка ошибок загрузки приложения:${NC}"
+if docker logs flask-app 2>&1 | grep -i "error\|exception\|traceback" | tail -20; then
+    echo -e "${YELLOW}Найдены ошибки в логах. Проверьте полные логи:${NC}"
+    echo -e "  docker logs flask-app"
+fi
 
 # 9. Проверка доступности
 echo -e "\n${YELLOW}9. Проверка доступности приложения...${NC}"
@@ -227,8 +236,15 @@ else
     echo -e "  $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml logs webapp"
 fi
 
+# Возвращаемся в корень проекта
+cd "$PROJECT_ROOT"
+
 echo -e "\n${GREEN}=== Развертывание завершено ===${NC}"
-echo -e "\nПолезные команды:"
+echo -e "\nПолезные команды (выполняйте из директории config/docker):"
+echo -e "  cd config/docker"
 echo -e "  Просмотр логов: $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml logs -f webapp"
 echo -e "  Остановка: $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml down"
 echo -e "  Перезапуск: $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml restart webapp"
+echo -e "\nИли используйте прямые команды docker:"
+echo -e "  docker logs flask-app"
+echo -e "  docker exec -it flask-app /bin/bash"
