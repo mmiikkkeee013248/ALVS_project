@@ -1,13 +1,14 @@
-version: '3.9'
-
-# Production override для использования внешних утилит сервера
-# Использование: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# Production конфигурация для использования внешних утилит сервера
+# Использование: docker compose -f docker-compose.prod.yml up -d
+# Этот файл полностью независим и не наследует docker-compose.yml
 
 services:
-  # Flask приложение - использует внешний PostgreSQL
+  # Flask приложение - использует внешний PostgreSQL на хосте
   webapp:
-    # Удаляем зависимость от postgres контейнера
-    depends_on: []
+    build:
+      context: ../..
+      dockerfile: config/docker/Dockerfile
+    container_name: flask-app
     environment:
       # Подключение к внешнему PostgreSQL на хосте
       # Используем host.docker.internal для доступа к хосту из контейнера
@@ -25,12 +26,15 @@ services:
     # Используем network_mode: host для прямого доступа к хосту (альтернатива)
     # network_mode: host
     # Если используем network_mode: host, убираем networks и ports mapping
+    volumes:
+      - ../../logs/app.log:/app/app.log
     networks:
       - app-network
+    restart: unless-stopped
 
-# Удаляем сервисы, которые не нужны в production
-# postgres - используем внешний
-# prometheus, grafana, loki, promtail - опционально, можно использовать внешние экземпляры
+# В production не используем:
+# - postgres (используем внешний на хосте)
+# - prometheus, grafana, loki, promtail (опционально, можно использовать внешние экземпляры)
 
 networks:
   app-network:

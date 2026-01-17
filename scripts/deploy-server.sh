@@ -151,23 +151,23 @@ cd config/docker
 
 # Остановка существующих контейнеров (если есть)
 echo -e "Остановка существующих контейнеров..."
-$DOCKER_COMPOSE_CMD -f docker-compose.yml -f docker-compose.prod.yml down 2>/dev/null || true
+$DOCKER_COMPOSE_CMD -f docker-compose.prod.yml down 2>/dev/null || true
 
 # Сборка образа
 echo -e "Сборка образа приложения..."
-$DOCKER_COMPOSE_CMD -f docker-compose.yml -f docker-compose.prod.yml build webapp
+$DOCKER_COMPOSE_CMD -f docker-compose.prod.yml build webapp
 
 # Запуск только webapp (без postgres и мониторинга)
 echo -e "Запуск контейнера приложения..."
-$DOCKER_COMPOSE_CMD -f docker-compose.yml -f docker-compose.prod.yml up -d webapp
+$DOCKER_COMPOSE_CMD -f docker-compose.prod.yml up -d webapp
 
 # 6. Проверка статуса
 echo -e "\n${YELLOW}6. Проверка статуса контейнеров...${NC}"
-$DOCKER_COMPOSE_CMD -f docker-compose.yml -f docker-compose.prod.yml ps
+$DOCKER_COMPOSE_CMD -f docker-compose.prod.yml ps
 
 # 7. Проверка логов
 echo -e "\n${YELLOW}7. Последние логи приложения:${NC}"
-$DOCKER_COMPOSE_CMD -f docker-compose.yml -f docker-compose.prod.yml logs --tail=20 webapp
+$DOCKER_COMPOSE_CMD -f docker-compose.prod.yml logs --tail=20 webapp
 
 # 8. Проверка доступности
 echo -e "\n${YELLOW}8. Проверка доступности приложения...${NC}"
@@ -176,11 +176,11 @@ if curl -f http://localhost:5000 > /dev/null 2>&1; then
     echo -e "${GREEN}✓ Приложение доступно на http://localhost:5000${NC}"
 else
     echo -e "${YELLOW}⚠ Приложение может быть еще не готово. Проверьте логи:${NC}"
-    echo -e "  $DOCKER_COMPOSE_CMD -f docker-compose.yml -f docker-compose.prod.yml logs webapp"
+    echo -e "  $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml logs webapp"
 fi
 
 echo -e "\n${GREEN}=== Развертывание завершено ===${NC}"
 echo -e "\nПолезные команды:"
-echo -e "  Просмотр логов: $DOCKER_COMPOSE_CMD -f docker-compose.yml -f docker-compose.prod.yml logs -f webapp"
-echo -e "  Остановка: $DOCKER_COMPOSE_CMD -f docker-compose.yml -f docker-compose.prod.yml down"
-echo -e "  Перезапуск: $DOCKER_COMPOSE_CMD -f docker-compose.yml -f docker-compose.prod.yml restart webapp"
+echo -e "  Просмотр логов: $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml logs -f webapp"
+echo -e "  Остановка: $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml down"
+echo -e "  Перезапуск: $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml restart webapp"
