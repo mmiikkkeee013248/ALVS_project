@@ -401,6 +401,63 @@ webapp:
     - "8080:5000"  # Внешний порт:внутренний порт
 ```
 
+### Проблема: Приложение возвращает пустую страницу
+
+**Причина**: Неправильная команда запуска Gunicorn или ошибка подключения к PostgreSQL.
+
+**Решение 1**: Проверьте логи контейнера:
+```bash
+docker logs flask-app
+docker compose -f config/docker/docker-compose.prod.yml logs webapp
+```
+
+**Решение 2**: Проверьте подключение к PostgreSQL:
+```bash
+# Из контейнера
+docker exec flask-app psql -h host.docker.internal -U postgres -d test_db -c "SELECT version();"
+
+# Если host.docker.internal не работает, используйте IP сервера
+docker exec flask-app psql -h 144.31.87.154 -U postgres -d test_db -c "SELECT version();"
+```
+
+**Решение 3**: Если `host.docker.internal` не работает, используйте IP адрес сервера:
+```bash
+# Получить IP адрес
+hostname -I | awk '{print $1}'
+
+# Обновить .env файл
+nano config/docker/.env
+# Измените PG_HOST на IP адрес сервера, например:
+# PG_HOST=144.31.87.154
+
+# Перезапустите контейнер
+docker compose -f config/docker/docker-compose.prod.yml restart webapp
+```
+
+### Проблема: Grafana не видит Prometheus
+
+Если Grafana запущена, но Prometheus не включен в production конфигурацию:
+
+**Решение 1**: Запустите Prometheus отдельно:
+```bash
+# Запуск Prometheus контейнера
+docker run -d \
+  --name prometheus \
+  -p 9090:9090 \
+  -v $(pwd)/config/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml \
+  prom/prometheus:latest
+```
+
+**Решение 2**: Настройте Grafana для подключения к Prometheus:
+1. Зайдите в Grafana: http://144.31.87.154:3000
+2. Configuration → Data Sources → Add data source
+3. Выберите Prometheus
+4. URL: `http://144.31.87.154:9090` (или `http://prometheus:9090` если в одной сети Docker)
+5. Save & Test
+
+**Решение 3**: Если Prometheus запущен в другой сети Docker, используйте IP адрес хоста:
+- URL в Grafana: `http://144.31.87.154:9090`
+
 ### Проблема: Приложение не запускается
 
 ```bash
