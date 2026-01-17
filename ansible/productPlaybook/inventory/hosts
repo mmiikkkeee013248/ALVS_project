@@ -1,0 +1,5 @@
+[ansible_hosts]
+localhost ansible_connection=local ansible_user=administrator ansible_become_pass=qwerty22
+
+[servers]
+server.mpsu.stu ansible_host=192.168.122.11 ansible_user=administrator ansible_become_pass=qwerty22

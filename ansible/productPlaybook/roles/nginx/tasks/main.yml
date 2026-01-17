@@ -1,0 +1,57 @@
+---
+- name: Установка NGINX
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Создание основного конфига NGINX
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart nginx
+
+- name: Создание директорий для сайтов
+  ansible.builtin.file:
+    path: "{{ nginx_root_dir }}/{{ item.dir }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+  loop:
+    - { dir: site, fqdn: 'server.mpsu.stu' }
+    - { dir: site1, fqdn: 'web1.mpsu.stu' }
+  loop_control:
+    label: "{{ item.dir }}"
+
+- name: Копирование HTML файлов для сайтов
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ nginx_root_dir }}/{{ item.dir }}/index.html"
+    owner: www-data
+    group: www-data
+    mode: '0644'
+  loop:
+    - { src: "index_a.html", dir: site }
+    - { src: "index_cname.html", dir: site1 }
+  loop_control:
+    label: "{{ item.dir }}"
+
+- name: Проверка конфигурации NGINX
+  ansible.builtin.command:
+    cmd: nginx -t
+  changed_when: false
+  register: nginx_test_result
+
+- name: Вывод результата проверки конфигурации
+  ansible.builtin.debug:
+    msg: "{{ nginx_test_result.stdout_lines }}"
+
+- name: Запуск и включение сервиса NGINX
+  ansible.builtin.systemd:
+    name: nginx
+    state: started
+    enabled: true

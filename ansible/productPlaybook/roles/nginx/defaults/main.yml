@@ -1,0 +1,6 @@
+---
+# Значения по умолчанию для роли NGINX
+nginx_worker_connections: 1024
+nginx_listen_port: 80
+nginx_listen_address: "0.0.0.0"
+nginx_root_dir: "/var/www/"

@@ -1,0 +1,5 @@
+[server]
+192.168.122.11 ansible_become_pass=qwerty22
+[clients]
+192.168.122.12 ansible_become_pass=qwerty22
+192.168.122.13 ansible_become_pass=qwerty22

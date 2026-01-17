@@ -1,0 +1,4 @@
+---
+cpu_count: "{{ ansible_processor_count }}"
+a_record: 'server.mpsu.stu'
+cname_record: 'web1.mpsu.stu'
