@@ -151,7 +151,38 @@ cd config/docker
 
 # Остановка существующих контейнеров (если есть)
 echo -e "Остановка существующих контейнеров..."
-$DOCKER_COMPOSE_CMD -f docker-compose.prod.yml down 2>/dev/null || true
+$DOCKER_COMPOSE_CMD -f docker-compose.prod.yml down --remove-orphans 2>/dev/null || true
+
+# Остановка контейнера flask-app, если он запущен отдельно
+if docker ps -a --format '{{.Names}}' | grep -q "^flask-app$"; then
+    echo -e "Остановка существующего контейнера flask-app..."
+    docker stop flask-app 2>/dev/null || true
+    docker rm flask-app 2>/dev/null || true
+fi
+
+# Проверка и освобождение порта 5000
+if command -v lsof &> /dev/null; then
+    PORT_PID=$(lsof -ti:5000 2>/dev/null || true)
+    if [ -n "$PORT_PID" ]; then
+        echo -e "${YELLOW}Порт 5000 занят процессом PID $PORT_PID. Остановка...${NC}"
+        kill -9 "$PORT_PID" 2>/dev/null || true
+        sleep 1
+    fi
+elif command -v netstat &> /dev/null; then
+    PORT_PID=$(netstat -tlnp 2>/dev/null | grep ':5000 ' | awk '{print $7}' | cut -d'/' -f1 | head -n1 || true)
+    if [ -n "$PORT_PID" ] && [ "$PORT_PID" != "-" ]; then
+        echo -e "${YELLOW}Порт 5000 занят процессом PID $PORT_PID. Остановка...${NC}"
+        kill -9 "$PORT_PID" 2>/dev/null || true
+        sleep 1
+    fi
+elif command -v ss &> /dev/null; then
+    PORT_PID=$(ss -tlnp 2>/dev/null | grep ':5000 ' | grep -oP 'pid=\K\d+' | head -n1 || true)
+    if [ -n "$PORT_PID" ]; then
+        echo -e "${YELLOW}Порт 5000 занят процессом PID $PORT_PID. Остановка...${NC}"
+        kill -9 "$PORT_PID" 2>/dev/null || true
+        sleep 1
+    fi
+fi
 
 # Сборка образа
 echo -e "Сборка образа приложения..."
@@ -159,7 +190,7 @@ $DOCKER_COMPOSE_CMD -f docker-compose.prod.yml build webapp
 
 # Запуск только webapp (без postgres и мониторинга)
 echo -e "Запуск контейнера приложения..."
-$DOCKER_COMPOSE_CMD -f docker-compose.prod.yml up -d webapp
+$DOCKER_COMPOSE_CMD -f docker-compose.prod.yml up -d --remove-orphans webapp
 
 # 6. Проверка статуса
 echo -e "\n${YELLOW}6. Проверка статуса контейнеров...${NC}"
