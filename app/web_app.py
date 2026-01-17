@@ -56,15 +56,17 @@ def create_app():
         if request.path == '/metrics':
             return response
 
-        duration = time.time() - request.start_time
-        method = request.method
-        path = request.path
-        status = str(response.status_code)
+        # Проверяем, что start_time был установлен (может отсутствовать при ошибках в before_request)
+        if hasattr(request, 'start_time'):
+            duration = time.time() - request.start_time
+            method = request.method
+            path = request.path
+            status = str(response.status_code)
 
-        # Обновляем метрики
-        http_requests_total.labels(method=method, path=path, status=status).inc()
-        http_request_duration_seconds.labels(method=method, path=path).observe(duration)
-        http_response_time_seconds.labels(method=method, path=path).set(duration)
+            # Обновляем метрики
+            http_requests_total.labels(method=method, path=path, status=status).inc()
+            http_request_duration_seconds.labels(method=method, path=path).observe(duration)
+            http_response_time_seconds.labels(method=method, path=path).set(duration)
 
         return response
 
