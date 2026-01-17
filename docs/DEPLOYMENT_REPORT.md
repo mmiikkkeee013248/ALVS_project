@@ -229,15 +229,16 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build we
 
 ---
 
-### Проблема 7: Gunicorn Worker failed to boot
+### Проблема 7: Gunicorn Worker failed to boot - IsADirectoryError
 
-**Описание:** Gunicorn не может загрузить приложение, ошибка `HaltServer 'Worker failed to boot.'`. Команды `docker compose` не работают из корня проекта.
+**Описание:** Gunicorn не может загрузить приложение, ошибка `IsADirectoryError: [Errno 21] Is a directory: '/app/app.log'`. Проблема возникла из-за volume mapping файла `app.log`, который не существовал на хосте - Docker создал директорию вместо файла.
 
 **Решение:** 
-- Добавлена обработка ошибок при создании `app` в `web_app.py` для детальной диагностики
+- Изменен volume mapping в `docker-compose.prod.yml`: монтируется директория `logs` вместо файла `app.log`
+- Исправлен путь к логам в `logger.py`: `/app/logs/app.log` вместо `/app/app.log`
+- Добавлена проверка в `logger.py`: если путь является директорией, создается файл внутри
+- Добавлена обработка ошибок при создании файла логов
 - Исправлены пути в скрипте развертывания (сохранение `PROJECT_ROOT`)
-- Добавлена улучшенная диагностика ошибок в логах
-- Для проверки логов использовать: `docker logs flask-app` или `cd config/docker && docker compose -f docker-compose.prod.yml logs webapp`
 
 ---
 
