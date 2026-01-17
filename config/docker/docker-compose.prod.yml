@@ -9,10 +9,14 @@ services:
       context: ../..
       dockerfile: config/docker/Dockerfile
     container_name: flask-app
+    # Загружаем переменные окружения из .env файла
+    env_file:
+      - .env
     environment:
       # Подключение к внешнему PostgreSQL на хосте
       # Используем host.docker.internal для доступа к хосту из контейнера
       # Или можно использовать IP адрес сервера напрямую
+      # Переменные из .env файла будут использованы, если не указаны явно
       PG_HOST: ${PG_HOST:-host.docker.internal}
       PG_PORT: ${PG_PORT:-5432}
       PG_DB: ${PG_DB:-test_db}
