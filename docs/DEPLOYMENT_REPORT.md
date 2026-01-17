@@ -242,6 +242,18 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build we
 
 ---
 
+### Проблема 8: Подключение к PostgreSQL через host.docker.internal не работает
+
+**Описание:** Приложение не может подключиться к PostgreSQL через `host.docker.internal`, ошибка `Connection refused`. Также возникает `AttributeError: 'Request' object has no attribute 'start_time'` при ошибке в `before_request`.
+
+**Решение:** 
+- Исправлена ошибка с `start_time`: добавлена проверка `hasattr(request, 'start_time')` в `after_request`
+- Для подключения к PostgreSQL нужно использовать IP адрес сервера вместо `host.docker.internal`:
+  - Обновить `config/docker/.env`: `PG_HOST=144.31.87.154`
+  - Или использовать `network_mode: host` в docker-compose.prod.yml
+
+---
+
 ## 8. Рекомендации
 
 ### Безопасность
