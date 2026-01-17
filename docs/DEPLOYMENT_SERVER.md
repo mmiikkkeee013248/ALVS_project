@@ -140,6 +140,51 @@ sudo nano /etc/postgresql/*/main/postgresql.conf
 sudo systemctl restart postgresql
 ```
 
+## Варианты развертывания
+
+### Вариант A: Использование образа из Docker Hub (рекомендуется для экономии места)
+
+Если образ уже опубликован на Docker Hub, можно использовать его без клонирования репозитория:
+
+```bash
+# 1. Создайте директорию для конфигурации
+mkdir -p ~/alvs-deploy
+cd ~/alvs-deploy
+
+# 2. Создайте .env файл
+cat > .env << EOF
+PG_HOST=postgres
+PG_PORT=5432
+PG_DB=test_db
+PG_USER=postgres
+PG_PASSWORD=your_secure_password
+DOCKERHUB_USERNAME=your_username
+EOF
+
+# 3. Скачайте docker-compose.prod.hub.yml из репозитория
+# Или создайте его вручную (см. config/docker/docker-compose.prod.hub.yml)
+
+# 4. Установите переменную окружения
+export DOCKERHUB_USERNAME=your_username
+
+# 5. Запустите контейнеры
+docker compose -f docker-compose.prod.hub.yml up -d
+```
+
+**Преимущества:**
+- Не нужно клонировать весь репозиторий
+- Экономия дискового пространства
+- Быстрое развертывание
+- Всегда актуальная версия из Docker Hub
+
+**Недостатки:**
+- Требуется доступ к Docker Hub
+- Нужно знать username на Docker Hub
+
+### Вариант B: Локальная сборка из репозитория
+
+Если нужно собрать образ локально или внести изменения:
+
 ## Клонирование репозитория
 
 Перед развертыванием необходимо клонировать репозиторий на сервер.

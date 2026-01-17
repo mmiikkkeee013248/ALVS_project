@@ -188,7 +188,9 @@ pytest tests/test_db.py -v
 
 Статус выполнения можно посмотреть во вкладке **Actions** на GitHub.
 
-### Настройка публикации в DockerHub
+### Публикация на Docker Hub
+
+#### Автоматическая публикация (CI/CD)
 
 Для автоматической публикации образа в DockerHub необходимо добавить секреты в GitHub:
 
@@ -196,6 +198,36 @@ pytest tests/test_db.py -v
 2. Добавьте следующие секреты:
    - `DOCKERHUB_USERNAME` - ваш логин на DockerHub
    - `DOCKERHUB_TOKEN` - токен доступа (создайте в DockerHub: Account Settings → Security → New Access Token)
+
+При каждом push в ветку `main` образ автоматически публикуется на Docker Hub.
+
+#### Ручная публикация
+
+Используйте скрипт для публикации образа:
+
+```bash
+# Авторизация в Docker Hub
+docker login
+
+# Публикация образа
+./scripts/publish-dockerhub.sh [version] [username]
+
+# Примеры:
+./scripts/publish-dockerhub.sh 1.0.0 myusername
+./scripts/publish-dockerhub.sh latest myusername
+```
+
+Или вручную:
+
+```bash
+# Сборка образа
+docker build -f config/docker/Dockerfile -t username/alvs-project:latest .
+
+# Публикация
+docker push username/alvs-project:latest
+```
+
+Подробные инструкции см. в [DOCKER_HUB.md](docs/DOCKER_HUB.md)
 
 ## Docker
 

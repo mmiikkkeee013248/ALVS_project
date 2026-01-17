@@ -1,0 +1,64 @@
+# Production конфигурация с использованием образа из Docker Hub
+# Использование: docker compose -f docker-compose.prod.hub.yml up -d
+# 
+# Перед использованием установите переменную окружения:
+# export DOCKERHUB_USERNAME=your_username
+# Или замените ${DOCKERHUB_USERNAME} на ваш username в этом файле
+
+version: '3.9'
+
+services:
+  # PostgreSQL база данных в Docker
+  postgres:
+    image: postgres:16-alpine
+    container_name: flask-postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${PG_DB:-test_db}
+      POSTGRES_USER: ${PG_USER:-postgres}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"  # Используем другой порт, чтобы не конфликтовать с системным PostgreSQL
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Flask приложение - использует образ из Docker Hub
+  webapp:
+    # Замените ${DOCKERHUB_USERNAME} на ваш username или используйте переменную окружения
+    image: ${DOCKERHUB_USERNAME:-your_username}/alvs-project:latest
+    container_name: flask-app
+    env_file:
+      - .env
+    environment:
+      PG_HOST: ${PG_HOST:-postgres}
+      PG_PORT: ${PG_PORT:-5432}
+      PG_DB: ${PG_DB:-test_db}
+      PG_USER: ${PG_USER:-postgres}
+      PG_PASSWORD: ${PG_PASSWORD:-postgres}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    volumes:
+      - ../../logs:/app/logs
+    networks:
+      - app-network
+    restart: unless-stopped
+
+# Volumes для PostgreSQL
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
