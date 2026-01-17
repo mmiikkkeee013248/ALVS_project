@@ -1,5 +1,0 @@
----
-# Значения по умолчанию для роли DNS
-dns_zone_name: "example.local"
-dns_ttl: 300
-dns_server_ip: "{{ ansible_default_ipv4.address }}"

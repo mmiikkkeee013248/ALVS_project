@@ -1,7 +1,0 @@
-// Конфигурация зоны для {{ dns_zone_name }}
-zone "{{ dns_zone_name }}" {
-    type master;
-    file "/etc/bind/zones/db.{{ dns_zone_name }}";
-    allow-query { any; };
-    allow-transfer { none; };
-};
