@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: alvs
+data:
+  PG_HOST: "postgres"
+  PG_PORT: "5432"
+  PG_DB: "test_db"
+  PG_USER: "postgres"
+  LOG_DIR: "/app/logs"

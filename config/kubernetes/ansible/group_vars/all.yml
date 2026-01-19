@@ -1,0 +1,30 @@
+---
+# Общие переменные для всех узлов
+k8s_version: "1.28.0"
+container_runtime: containerd
+kubelet_version: "1.28.0"
+kubectl_version: "1.28.0"
+kubeadm_version: "1.28.0"
+
+# Сетевые настройки
+pod_network_cidr: "10.244.0.0/16"
+service_cidr: "10.96.0.0/12"
+
+# Настройки для master
+k8s_master_ip: "192.168.1.92"
+k8s_master_hostname: "k8s-master"
+
+# Настройки для приложения
+app_namespace: "alvs"
+app_name: "alvs-project"
+app_image: "alvs-project:latest"  # Можно заменить на Docker Hub образ
+
+# PostgreSQL настройки
+postgres_db: "test_db"
+postgres_user: "postgres"
+postgres_password: "postgres"  # В production использовать секреты!
+
+# Мониторинг
+monitoring_namespace: "monitoring"
+prometheus_port: 9090
+grafana_port: 3000

@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alvs-app
+  namespace: alvs
+  labels:
+    app: alvs-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: alvs-app
+  template:
+    metadata:
+      labels:
+        app: alvs-app
+    spec:
+      containers:
+      - name: webapp
+        image: alvs-project:latest  # Замените на ваш Docker Hub образ: username/alvs-project:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000
+          name: http
+        env:
+        - name: PG_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: PG_HOST
+        - name: PG_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: PG_PORT
+        - name: PG_DB
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: PG_DB
+        - name: PG_USER
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: PG_USER
+        - name: PG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: PG_PASSWORD
+        - name: LOG_DIR
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: LOG_DIR
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alvs-app
+  namespace: alvs
+  labels:
+    app: alvs-app
+spec:
+  type: NodePort
+  ports:
+  - port: 5000
+    targetPort: 5000
+    protocol: TCP
+    name: http
+    nodePort: 30080  # Доступно на всех узлах по порту 30080
+  selector:
+    app: alvs-app

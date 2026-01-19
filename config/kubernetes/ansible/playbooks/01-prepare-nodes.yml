@@ -1,0 +1,127 @@
+---
+- name: Подготовка всех узлов Kubernetes кластера
+  hosts: k8s_cluster
+  become: yes
+  tasks:
+    - name: Обновление списка пакетов
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Установка необходимых пакетов
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - python3-pip
+          - python3-setuptools
+        state: present
+
+    - name: Отключение swap
+      shell: |
+        swapoff -a
+        sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+      ignore_errors: yes
+
+    - name: Загрузка модулей ядра
+      modprobe:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - overlay
+        - br_netfilter
+
+    - name: Настройка sysctl параметров
+      sysctl:
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+        state: present
+        sysctl_set: yes
+        reload: yes
+      loop:
+        - { key: 'net.bridge.bridge-nf-call-iptables', value: '1' }
+        - { key: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
+        - { key: 'net.ipv4.ip_forward', value: '1' }
+      ignore_errors: yes
+
+    - name: Применение sysctl параметров
+      command: sysctl --system
+
+    - name: Добавление Docker репозитория GPG ключа
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Добавление Docker репозитория
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+        update_cache: yes
+
+    - name: Установка containerd
+      apt:
+        name:
+          - containerd.io
+        state: present
+
+    - name: Настройка containerd
+      copy:
+        content: |
+          [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+            [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+              SystemdCgroup = true
+        dest: /etc/containerd/config.toml
+        mode: '0644'
+      notify: restart containerd
+
+    - name: Запуск и включение containerd
+      systemd:
+        name: containerd
+        enabled: yes
+        state: started
+
+    - name: Добавление Kubernetes репозитория GPG ключа
+      apt_key:
+        url: https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key
+        state: present
+
+    - name: Добавление Kubernetes репозитория
+      apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /"
+        state: present
+        filename: kubernetes
+        update_cache: yes
+
+    - name: Установка Kubernetes компонентов
+      apt:
+        name:
+          - kubelet={{ kubelet_version }}-1.1
+          - kubeadm={{ kubeadm_version }}-1.1
+          - kubectl={{ kubectl_version }}-1.1
+        state: present
+        allow_downgrade: yes
+
+    - name: Запрет обновления kubelet, kubeadm, kubectl
+      apt:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: present
+        install_recommends: no
+      when: ansible_os_family == "Debian"
+
+    - name: Запуск и включение kubelet
+      systemd:
+        name: kubelet
+        enabled: yes
+        state: started
+
+  handlers:
+    - name: restart containerd
+      systemd:
+        name: containerd
+        state: restarted

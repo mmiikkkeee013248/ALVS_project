@@ -1,0 +1,8 @@
+# StorageClass для локального хранилища (если нет другого провайдера)
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-path
+provisioner: rancher.io/local-path
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Delete

@@ -23,12 +23,39 @@ ALVS_project/
 ├── tests/                  # Тесты
 ├── config/                 # Конфигурационные файлы
 │   ├── docker/            # Docker конфигурация
+│   ├── kubernetes/        # Kubernetes манифесты и Ansible
 │   └── monitoring/        # Мониторинг (Prometheus, Grafana)
 ├── infrastructure/         # Инфраструктура как код (Ansible)
 ├── scripts/               # Скрипты подготовки
 ├── docs/                  # Документация
 └── logs/                  # Логи приложения
 ```
+
+## Варианты развертывания
+
+### Docker Compose
+Быстрый запуск для разработки и тестирования:
+```bash
+cd config/docker
+docker-compose up -d
+```
+См. [docs/DOCKER.md](docs/DOCKER.md)
+
+### Kubernetes
+Production-ready развертывание в Kubernetes кластере:
+```bash
+cd config/kubernetes/ansible
+ansible-playbook -i inventory/hosts.yml playbooks/01-prepare-nodes.yml
+# ... (см. полную инструкцию)
+```
+См. [docs/KUBERNETES_DEPLOYMENT.md](docs/KUBERNETES_DEPLOYMENT.md)
+
+### Docker Hub
+Использование готового образа из Docker Hub:
+```bash
+docker pull your_username/alvs-project:latest
+```
+См. [docs/DOCKER_HUB.md](docs/DOCKER_HUB.md)
 
 ### Основные файлы приложения
 

@@ -1,0 +1,30 @@
+---
+# Главный playbook для развертывания Kubernetes кластера
+- name: Развертывание Kubernetes кластера
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - name: Запуск подготовки узлов
+      include: playbooks/01-prepare-nodes.yml
+
+    - name: Запуск инициализации master
+      include: playbooks/02-init-master.yml
+
+    - name: Ожидание готовности master
+      pause:
+        seconds: 30
+        prompt: "Ожидание готовности master узла..."
+
+    - name: Запуск присоединения workers
+      include: playbooks/03-join-workers.yml
+
+    - name: Проверка статуса кластера
+      shell: |
+        ssh -i ~/.ssh/id_ed25519 {{ ansible_user }}@{{ k8s_master_ip }} "kubectl get nodes"
+      register: cluster_status
+      delegate_to: localhost
+
+    - name: Вывод статуса кластера
+      debug:
+        msg: "{{ cluster_status.stdout_lines }}"

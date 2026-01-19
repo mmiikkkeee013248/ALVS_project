@@ -1,0 +1,54 @@
+---
+- name: Присоединение worker узлов к кластеру
+  hosts: k8s_workers
+  become: yes
+  vars:
+    kubeadm_join_command: ""
+  tasks:
+    - name: Получение команды join с master узла
+      slurp:
+        src: /tmp/kubeadm_join_command.sh
+      delegate_to: k8s-master
+      register: join_command_file
+      when: kubeadm_join_command == ""
+
+    - name: Извлечение команды join из файла
+      set_fact:
+        kubeadm_join_command: "{{ join_command_file.content | b64decode | trim }}"
+      when: 
+        - kubeadm_join_command == ""
+        - join_command_file.content is defined
+
+    - name: Альтернативный способ получения команды join
+      shell: |
+        export KUBECONFIG=/home/{{ ansible_user }}/.kube/config
+        kubeadm token create --print-join-command
+      delegate_to: k8s-master
+      register: join_command_direct
+      when: kubeadm_join_command == ""
+
+    - name: Установка команды join из прямого вызова
+      set_fact:
+        kubeadm_join_command: "{{ join_command_direct.stdout }}"
+      when: 
+        - kubeadm_join_command == ""
+        - join_command_direct.stdout is defined
+
+    - name: Проверка, что узел еще не присоединен
+      shell: |
+        kubectl get nodes 2>/dev/null || echo "not_joined"
+      register: node_status
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Присоединение worker узла к кластеру
+      shell: "{{ kubeadm_join_command }}"
+      when: 
+        - kubeadm_join_command != ""
+        - node_status.stdout is not defined or "not_joined" in node_status.stdout
+      register: join_result
+
+    - name: Вывод результата присоединения
+      debug:
+        msg: "{{ join_result.stdout_lines }}"
+      when: join_result.stdout_lines is defined
