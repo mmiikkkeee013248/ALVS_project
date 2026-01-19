@@ -1,0 +1,118 @@
+---
+- name: Развертывание Kubernetes кластера с master узла
+  hosts: k8s_masters
+  become: yes
+  vars:
+    ansible_user: mike_1111
+    ansible_k8s_dir: /home/{{ ansible_user }}/ansible-k8s
+  tasks:
+    - name: Проверка наличия Ansible на master
+      command: ansible --version
+      register: ansible_check
+      changed_when: false
+      failed_when: false
+
+    - name: Проверка SSH подключения к workers с master
+      shell: |
+        cd {{ ansible_k8s_dir }}
+        ansible all -i inventory/hosts.yml -m ping
+      environment:
+        ANSIBLE_CONFIG: "{{ ansible_k8s_dir }}/ansible.cfg"
+      register: ping_check
+      changed_when: false
+
+    - name: Вывод результата ping
+      debug:
+        msg: "{{ ping_check.stdout_lines }}"
+
+    - name: Подготовка всех узлов (включая master)
+      shell: |
+        cd {{ ansible_k8s_dir }}
+        ansible-playbook -i inventory/hosts.yml playbooks/01-prepare-nodes.yml
+      environment:
+        ANSIBLE_CONFIG: "{{ ansible_k8s_dir }}/ansible.cfg"
+      register: prepare_result
+
+    - name: Вывод результата подготовки
+      debug:
+        msg: "{{ prepare_result.stdout_lines }}"
+
+    - name: Инициализация master узла
+      shell: |
+        cd {{ ansible_k8s_dir }}
+        ansible-playbook -i inventory/hosts.yml playbooks/02-init-master.yml
+      environment:
+        ANSIBLE_CONFIG: "{{ ansible_k8s_dir }}/ansible.cfg"
+      register: init_result
+
+    - name: Вывод результата инициализации
+      debug:
+        msg: "{{ init_result.stdout_lines }}"
+
+    - name: Ожидание готовности master
+      pause:
+        seconds: 30
+        prompt: "Ожидание готовности master узла..."
+
+    - name: Присоединение worker узлов
+      shell: |
+        cd {{ ansible_k8s_dir }}
+        ansible-playbook -i inventory/hosts.yml playbooks/03-join-workers.yml
+      environment:
+        ANSIBLE_CONFIG: "{{ ansible_k8s_dir }}/ansible.cfg"
+      register: join_result
+
+    - name: Вывод результата присоединения
+      debug:
+        msg: "{{ join_result.stdout_lines }}"
+
+    - name: Проверка статуса кластера
+      shell: |
+        export KUBECONFIG=/home/{{ ansible_user }}/.kube/config
+        kubectl get nodes -o wide
+      register: nodes_status
+      changed_when: false
+
+    - name: Вывод статуса узлов
+      debug:
+        msg: "{{ nodes_status.stdout_lines }}"
+
+    - name: Деплой приложения
+      shell: |
+        cd {{ ansible_k8s_dir }}
+        export KUBECONFIG=/home/{{ ansible_user }}/.kube/config
+        kubectl apply -f manifests/
+      register: deploy_result
+
+    - name: Вывод результата деплоя
+      debug:
+        msg: "{{ deploy_result.stdout_lines }}"
+
+    - name: Ожидание готовности подов
+      shell: |
+        export KUBECONFIG=/home/{{ ansible_user }}/.kube/config
+        kubectl wait --for=condition=ready pod -l app=postgres -n alvs --timeout=300s || echo "PostgreSQL еще не готов"
+        kubectl wait --for=condition=ready pod -l app=alvs-app -n alvs --timeout=300s || echo "Приложение еще не готово"
+      register: wait_result
+
+    - name: Финальная проверка статуса
+      shell: |
+        export KUBECONFIG=/home/{{ ansible_user }}/.kube/config
+        echo "=== Узлы кластера ==="
+        kubectl get nodes -o wide
+        echo ""
+        echo "=== Поды в namespace alvs ==="
+        kubectl get pods -n alvs
+        echo ""
+        echo "=== Поды в namespace monitoring ==="
+        kubectl get pods -n monitoring
+        echo ""
+        echo "=== Сервисы ==="
+        kubectl get svc -n alvs
+        kubectl get svc -n monitoring
+      register: final_status
+      changed_when: false
+
+    - name: Вывод финального статуса
+      debug:
+        msg: "{{ final_status.stdout_lines }}"

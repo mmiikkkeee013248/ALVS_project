@@ -1,0 +1,163 @@
+---
+- name: Установка Ansible на k8s-master
+  hosts: k8s_masters
+  become: yes
+  tasks:
+    - name: Обновление списка пакетов
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Установка необходимых пакетов для Ansible
+      apt:
+        name:
+          - python3
+          - python3-pip
+          - python3-dev
+          - openssh-server
+          - curl
+          - wget
+          - git
+          - vim
+          - net-tools
+          - sshpass
+        state: present
+
+    - name: Установка Ansible через pip
+      pip:
+        name:
+          - ansible
+          - jinja2
+          - pyyaml
+        state: present
+        executable: pip3
+
+    - name: Проверка установки Ansible
+      command: ansible --version
+      register: ansible_version
+      changed_when: false
+
+    - name: Вывод версии Ansible
+      debug:
+        msg: "{{ ansible_version.stdout_lines }}"
+
+    - name: Создание директории для Ansible проектов
+      file:
+        path: /home/{{ ansible_user }}/ansible-k8s
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
+    - name: Создание структуры директорий для Kubernetes deployment
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+      loop:
+        - /home/{{ ansible_user }}/ansible-k8s/inventory
+        - /home/{{ ansible_user }}/ansible-k8s/group_vars
+        - /home/{{ ansible_user }}/ansible-k8s/playbooks
+        - /home/{{ ansible_user }}/ansible-k8s/manifests
+
+    - name: Копирование inventory файла на master
+      copy:
+        src: "{{ playbook_dir }}/../inventory/hosts.yml"
+        dest: /home/{{ ansible_user }}/ansible-k8s/inventory/hosts.yml
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0644'
+
+    - name: Копирование group_vars на master
+      copy:
+        src: "{{ playbook_dir }}/../group_vars/all.yml"
+        dest: /home/{{ ansible_user }}/ansible-k8s/group_vars/all.yml
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0644'
+
+    - name: Копирование ansible.cfg на master
+      copy:
+        src: "{{ playbook_dir }}/../ansible.cfg"
+        dest: /home/{{ ansible_user }}/ansible-k8s/ansible.cfg
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0644'
+
+    - name: Копирование playbooks на master
+      copy:
+        src: "{{ playbook_dir }}/{{ item }}"
+        dest: /home/{{ ansible_user }}/ansible-k8s/playbooks/{{ item }}
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0644'
+      loop:
+        - 01-prepare-nodes.yml
+        - 02-init-master.yml
+        - 03-join-workers.yml
+      when: item != "00-install-ansible-on-master.yml"
+
+    - name: Поиск файлов манифестов
+      find:
+        paths: "{{ playbook_dir }}/../../manifests"
+        patterns: "*.yml"
+      register: manifest_files
+
+    - name: Копирование Kubernetes манифестов на master
+      copy:
+        src: "{{ item.path }}"
+        dest: /home/{{ ansible_user }}/ansible-k8s/manifests/{{ item.path | basename }}
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0644'
+      loop: "{{ manifest_files.files }}"
+
+    - name: Копирование скрипта деплоя на master
+      copy:
+        src: "{{ playbook_dir }}/../../deploy.sh"
+        dest: /home/{{ ansible_user }}/ansible-k8s/deploy.sh
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
+    - name: Генерация SSH ключей на master (если отсутствуют)
+      openssh_keypair:
+        path: /home/{{ ansible_user }}/.ssh/id_ed25519
+        type: ed25519
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0600'
+        comment: "ansible@k8s-master"
+      when: not lookup('file', '/home/' + ansible_user + '/.ssh/id_ed25519', errors='ignore')
+
+    - name: Получение публичного SSH ключа с master
+      slurp:
+        src: /home/{{ ansible_user }}/.ssh/id_ed25519.pub
+      register: master_ssh_key
+      when: ansible_user is defined
+      failed_when: false
+
+    - name: Копирование SSH ключа на worker узлы
+      authorized_key:
+        user: "{{ ansible_user }}"
+        state: present
+        key: "{{ master_ssh_key.content | b64decode | trim }}"
+      delegate_to: "{{ item }}"
+      loop: "{{ groups['k8s_workers'] }}"
+      when: 
+        - master_ssh_key.content is defined
+        - master_ssh_key.content | length > 0
+
+    - name: Проверка SSH подключения с master к workers
+      command: ansible all -i /home/{{ ansible_user }}/ansible-k8s/inventory/hosts.yml -m ping
+      environment:
+        ANSIBLE_CONFIG: /home/{{ ansible_user }}/ansible-k8s/ansible.cfg
+      register: ping_result
+      changed_when: false
+      failed_when: false
+
+    - name: Вывод результата проверки подключения
+      debug:
+        msg: "{{ ping_result.stdout_lines }}"
