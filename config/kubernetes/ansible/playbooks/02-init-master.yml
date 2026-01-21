@@ -3,75 +3,63 @@
   hosts: k8s_masters
   become: yes
   tasks:
-    - name: Проверка, что kubeadm не инициализирован
-      stat:
-        path: /etc/kubernetes/admin.conf
-      register: kubeconfig
+    - name: Полный сброс перед инициализацией
+      shell: kubeadm reset -f && rm -rf /etc/cni/net.d && rm -rf $HOME/.kube
+      ignore_errors: yes
 
     - name: Инициализация Kubernetes кластера
       shell: |
         kubeadm init \
           --pod-network-cidr={{ pod_network_cidr }} \
           --apiserver-advertise-address={{ k8s_master_ip }} \
-          --control-plane-endpoint={{ k8s_master_ip }}:6443 \
-          --service-cidr={{ service_cidr }} \
           --ignore-preflight-errors=Swap
-      when: not kubeconfig.stat.exists
       register: kubeadm_init
 
-    - name: Создание директории .kube для текущего пользователя
+    - name: Создание директории .kube
       file:
-        path: /home/{{ ansible_user }}/.kube
+        path: "/home/{{ ansible_user }}/.kube"
         state: directory
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         mode: '0755'
 
-    - name: Копирование kubeconfig для текущего пользователя
+    - name: Копирование kubeconfig
       copy:
         src: /etc/kubernetes/admin.conf
-        dest: /home/{{ ansible_user }}/.kube/config
+        dest: "/home/{{ ansible_user }}/.kube/config"
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         mode: '0644'
         remote_src: yes
-      when: kubeconfig.stat.exists or kubeadm_init.rc == 0
 
-    - name: Ожидание готовности API сервера
+    - name: Ожидание API сервера
       wait_for:
         host: "{{ k8s_master_ip }}"
         port: 6443
-        delay: 10
+        delay: 5
         timeout: 300
-      when: kubeconfig.stat.exists or kubeadm_init.rc == 0
 
-    - name: Установка CNI плагина (Calico)
+    - name: Установка Flannel CNI
       shell: |
-        kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.1/manifests/calico.yaml
+        kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
       environment:
-        KUBECONFIG: /home/{{ ansible_user }}/.kube/config
-      when: kubeconfig.stat.exists or kubeadm_init.rc == 0
-      register: calico_install
-      until: calico_install.rc == 0
-      retries: 10
-      delay: 15
+        KUBECONFIG: "/home/{{ ansible_user }}/.kube/config"
 
-    - name: Получение команды join для worker узлов
+    - name: Тюнинг API сервера (Таймауты и Лимиты)
       shell: |
-        kubeadm token create --print-join-command
-      environment:
-        KUBECONFIG: /home/{{ ansible_user }}/.kube/config
-      register: join_command
-      when: kubeconfig.stat.exists or kubeadm_init.rc == 0
-      changed_when: false
+        sed -i '/--service-cluster-ip-range/a \    - --max-requests-inflight=400\n    - --max-mutating-requests-inflight=200\n    - --feature-gates=APIPriorityAndFairness=false' /etc/kubernetes/manifests/kube-apiserver.yaml
+        sed -i 's/initialDelaySeconds: 15/initialDelaySeconds: 60/g' /etc/kubernetes/manifests/kube-apiserver.yaml
+        sed -i 's/timeoutSeconds: 15/timeoutSeconds: 30/g' /etc/kubernetes/manifests/kube-apiserver.yaml
 
-    - name: Сохранение команды join в файл
-      copy:
-        content: "{{ join_command.stdout }}"
-        dest: /tmp/kubeadm_join_command.sh
-        mode: '0755'
-      when: join_command.stdout is defined
+    - name: Тюнинг etcd (Таймауты для слабого железа)
+      shell: |
+        sed -i '/--initial-cluster-state=new/a \    - --heartbeat-interval=250\n    - --election-timeout=1250' /etc/kubernetes/manifests/etcd.yaml
+        sed -i 's/initialDelaySeconds: 15/initialDelaySeconds: 60/g' /etc/kubernetes/manifests/etcd.yaml
 
-    - name: Вывод команды join
-      debug:
-        msg: "Команда для присоединения worker узлов: {{ join_command.stdout }}"
+    - name: Получение команды join
+      shell: kubeadm token create --print-join-command
+      register: join_command_raw
+
+    - name: Сохранение команды join
+      set_fact:
+        join_command: "{{ join_command_raw.stdout }}"

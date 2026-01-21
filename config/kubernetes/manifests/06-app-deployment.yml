@@ -15,6 +15,32 @@ spec:
       labels:
         app: alvs-app
     spec:
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox:latest
+        command:
+        - sh
+        - -c
+        - |
+          echo "Waiting for PostgreSQL DNS to be ready..."
+          
+          # Пробуем разные варианты имени хоста (в порядке приоритета)
+          for host in postgres postgres.alvs postgres.alvs.svc.cluster.local; do
+            echo "Trying to resolve $host..."
+            for i in $(seq 1 60); do
+              if nslookup $host >/dev/null 2>&1; then
+                echo "✓ DNS resolved successfully: $host"
+                exit 0
+              fi
+              if [ $((i % 10)) -eq 0 ]; then
+                echo "Attempt $i/60: Still waiting for DNS resolution..."
+              fi
+              sleep 1
+            done
+          done
+          
+          echo "WARNING: Could not resolve PostgreSQL DNS, but continuing anyway..."
+          echo "Application will retry connection on startup"
       containers:
       - name: webapp
         image: alvs-project:latest  # Замените на ваш Docker Hub образ: username/alvs-project:latest

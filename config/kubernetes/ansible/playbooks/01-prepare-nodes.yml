@@ -16,8 +16,6 @@
           - curl
           - gnupg
           - lsb-release
-          - python3-pip
-          - python3-setuptools
         state: present
 
     - name: Отключение swap
@@ -34,94 +32,82 @@
         - overlay
         - br_netfilter
 
+    - name: Настройка модулей ядра при загрузке
+      copy:
+        content: |
+          overlay
+          br_netfilter
+        dest: /etc/modules-load.d/k8s.conf
+
     - name: Настройка sysctl параметров
-      sysctl:
-        name: "{{ item.key }}"
-        value: "{{ item.value }}"
-        state: present
-        sysctl_set: yes
-        reload: yes
-      loop:
-        - { key: 'net.bridge.bridge-nf-call-iptables', value: '1' }
-        - { key: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
-        - { key: 'net.ipv4.ip_forward', value: '1' }
-      ignore_errors: yes
+      copy:
+        content: |
+          net.bridge.bridge-nf-call-iptables  = 1
+          net.bridge.bridge-nf-call-ip6tables = 1
+          net.ipv4.ip_forward                 = 1
+        dest: /etc/sysctl.d/k8s.conf
 
     - name: Применение sysctl параметров
       command: sysctl --system
 
-    - name: Добавление Docker репозитория GPG ключа
-      apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
-
-    - name: Добавление Docker репозитория
-      apt_repository:
-        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
-        state: present
-        update_cache: yes
-
     - name: Установка containerd
       apt:
-        name:
-          - containerd.io
+        name: containerd.io
         state: present
 
-    - name: Настройка containerd
-      copy:
-        content: |
-          [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
-            [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
-              SystemdCgroup = true
-        dest: /etc/containerd/config.toml
-        mode: '0644'
+    - name: Создание конфигурации containerd по умолчанию
+      shell: |
+        mkdir -p /etc/containerd
+        containerd config default > /etc/containerd/config.toml
+
+    - name: Настройка containerd (SystemdCgroup и отключение аннотаций)
+      replace:
+        path: /etc/containerd/config.toml
+        regexp: 'SystemdCgroup = false'
+        replace: 'SystemdCgroup = true'
       notify: restart containerd
 
-    - name: Запуск и включение containerd
-      systemd:
-        name: containerd
-        enabled: yes
-        state: started
+    - name: Отключение snapshot_annotations (фикс для старых ядер)
+      replace:
+        path: /etc/containerd/config.toml
+        regexp: 'disable_snapshot_annotations = false'
+        replace: 'disable_snapshot_annotations = true'
+      notify: restart containerd
 
-    - name: Добавление Kubernetes репозитория GPG ключа
-      apt_key:
-        url: https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key
-        state: present
+    - name: Добавление Kubernetes GPG ключа
+      shell: |
+        mkdir -p /etc/apt/keyrings
+        curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      args:
+        creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
     - name: Добавление Kubernetes репозитория
-      apt_repository:
-        repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /"
-        state: present
-        filename: kubernetes
-        update_cache: yes
+      copy:
+        content: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /"
+        dest: /etc/apt/sources.list.d/kubernetes.list
 
     - name: Установка Kubernetes компонентов
-      apt:
-        name:
-          - kubelet={{ kubelet_version }}-1.1
-          - kubeadm={{ kubeadm_version }}-1.1
-          - kubectl={{ kubectl_version }}-1.1
-        state: present
-        allow_downgrade: yes
-
-    - name: Запрет обновления kubelet, kubeadm, kubectl
       apt:
         name:
           - kubelet
           - kubeadm
           - kubectl
         state: present
-        install_recommends: no
-      when: ansible_os_family == "Debian"
+        update_cache: yes
 
-    - name: Запуск и включение kubelet
-      systemd:
-        name: kubelet
-        enabled: yes
-        state: started
+    - name: Настройка IP ноды для Kubelet
+      copy:
+        content: "KUBELET_EXTRA_ARGS=--node-ip={{ node_ip }}"
+        dest: /etc/default/kubelet
+      notify: restart kubelet
 
   handlers:
     - name: restart containerd
       systemd:
         name: containerd
+        state: restarted
+
+    - name: restart kubelet
+      systemd:
+        name: kubelet
         state: restarted
