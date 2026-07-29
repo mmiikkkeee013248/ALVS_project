@@ -1,0 +1,12 @@
+.gradle/
+.idea/
+.kotlin/
+local.properties
+**/build/
+*.iml
+.DS_Store
+Table-Multiplication-debug.apk
+server/node_modules/
+server/.env
+server/data/platform.db
+server/data/releases/*.apk
