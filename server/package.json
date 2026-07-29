@@ -1,7 +1,7 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "Leaderboard API for Multiplication Trainer",
+  "description": "Platform API for Ucheba v Tempe",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

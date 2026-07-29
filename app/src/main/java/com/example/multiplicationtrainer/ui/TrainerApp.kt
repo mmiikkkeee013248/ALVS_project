@@ -33,24 +33,25 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.example.multiplicationtrainer.model.Feedback
 import com.example.multiplicationtrainer.model.GamePhase
 import com.example.multiplicationtrainer.model.GameResult
+import com.example.multiplicationtrainer.model.SpellingCatalog
+import com.example.multiplicationtrainer.ui.components.SpellingSlotInput
+import com.example.multiplicationtrainer.ui.components.WordPictureCard
 import com.example.multiplicationtrainer.ui.multiplication.MultiplicationUiState
 import com.example.multiplicationtrainer.ui.multiplication.MultiplicationViewModel
 import com.example.multiplicationtrainer.ui.spelling.SpellingUiState
@@ -72,8 +73,9 @@ fun TrainerApp(
     val scope = rememberCoroutineScope()
     val updateInstaller = remember { UpdateInstaller(context) }
 
-  var multVariant by remember { mutableIntStateOf(10) }
-  var spellVariant by remember { mutableIntStateOf(10) }
+    var multVariant by remember { mutableIntStateOf(10) }
+    var spellVariant by remember { mutableIntStateOf(10) }
+    var spellGrade by remember { mutableStateOf<Int?>(null) }
 
     val installPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
@@ -145,7 +147,7 @@ fun TrainerApp(
                     multiplicationViewModel.prepare(multVariant)
                     appViewModel.navigate(AppScreen.MultiplicationSetup)
                 } else {
-                    spellingViewModel.prepare(spellVariant)
+                    spellingViewModel.prepare(spellVariant, spellGrade)
                     appViewModel.navigate(AppScreen.SpellingSetup)
                 }
             },
@@ -240,12 +242,16 @@ fun TrainerApp(
                     appViewModel.navigate(AppScreen.SpellingGame)
                 }
             }
-            ChallengeSetupScreen(
-                title = "Словарные слова",
+            SpellingSetupScreen(
                 selectedVariant = spellVariant,
+                selectedGrade = spellGrade,
                 onSelectVariant = {
                     spellVariant = it
-                    spellingViewModel.prepare(it)
+                    spellingViewModel.prepare(it, spellGrade)
+                },
+                onSelectGrade = {
+                    spellGrade = it
+                    spellingViewModel.setGrade(it)
                 },
                 onStart = { spellingViewModel.startGame() },
                 onBack = { appViewModel.navigate(AppScreen.Challenges) },
@@ -273,7 +279,7 @@ fun TrainerApp(
             syncStatus = spellState.syncStatus,
             onAgain = {
                 spellingViewModel.reset()
-                spellingViewModel.prepare(spellVariant)
+                spellingViewModel.prepare(spellVariant, spellGrade)
                 appViewModel.navigate(AppScreen.SpellingSetup)
             },
             onHome = {
@@ -329,7 +335,16 @@ private fun MultiplicationGameScreen(
                 fontWeight = FontWeight.Black,
             )
             Spacer(Modifier.height(16.dp))
-            AnswerBoxes(state.typedAnswer)
+            AnswerBoxes(answer = state.typedAnswer, feedback = state.feedback)
+            if (state.feedback == Feedback.WRONG && state.correctAnswer != null) {
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = "Правильно: ${state.correctAnswer}",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFB71C1C),
+                )
+            }
             Spacer(Modifier.weight(0.5f))
             NumericKeypad(enabled = state.inputEnabled, onDigit = onDigit)
         }
@@ -376,23 +391,26 @@ private fun SpellingGameScreen(
             Spacer(Modifier.height(12.dp))
             val word = state.currentWord
             if (word != null) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data("file:///android_asset/spelling/${word.image}")
-                        .build(),
-                    contentDescription = word.word,
-                    modifier = Modifier.size(220.dp),
-                    contentScale = ContentScale.Fit,
+                WordPictureCard(emoji = word.emoji, imagePath = word.image)
+                Spacer(Modifier.height(20.dp))
+                SpellingSlotInput(
+                    word = word.word,
+                    typedAnswer = state.typedAnswer,
+                    onAnswerChange = onAnswerChange,
+                    onSubmit = onSubmit,
+                    enabled = state.inputEnabled,
+                    feedback = state.feedback,
                 )
             }
-            Spacer(Modifier.height(16.dp))
-            OutlinedTextField(
-                value = state.typedAnswer,
-                onValueChange = onAnswerChange,
-                label = { Text("Напиши слово") },
-                enabled = state.inputEnabled,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            if (state.feedback == Feedback.WRONG && state.revealedAnswer != null) {
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    text = "Правильно: ${state.revealedAnswer}",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFB71C1C),
+                )
+            }
             Spacer(Modifier.height(12.dp))
             Button(onClick = onSubmit, enabled = state.inputEnabled, modifier = Modifier.fillMaxWidth()) {
                 Text("Проверить")
@@ -426,15 +444,27 @@ private fun ResultScreen(
 }
 
 @Composable
-private fun AnswerBoxes(answer: String) {
+private fun AnswerBoxes(answer: String, feedback: Feedback = Feedback.NONE) {
+    val boxColor = when (feedback) {
+        Feedback.CORRECT -> Color(0xFF2E7D32)
+        Feedback.WRONG -> Color(0xFFC62828)
+        Feedback.NONE -> Color(0xFF424242)
+    }
+    val textColor = Color.White
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         repeat(2) { index ->
             Card(
                 modifier = Modifier.size(width = 70.dp, height = 82.dp),
                 shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = boxColor),
             ) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(answer.getOrNull(index)?.toString().orEmpty(), fontSize = 40.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        answer.getOrNull(index)?.toString().orEmpty(),
+                        fontSize = 40.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor,
+                    )
                 }
             }
         }
@@ -452,7 +482,12 @@ private fun NumericKeypad(enabled: Boolean, onDigit: (Int) -> Unit) {
                         onClick = { onDigit(digit) },
                         enabled = enabled,
                         modifier = Modifier.weight(1f).height(58.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = MaterialTheme.colorScheme.onSurface,
+                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                        ),
                     ) { Text("$digit", fontSize = 24.sp) }
                 }
             }
@@ -463,6 +498,12 @@ private fun NumericKeypad(enabled: Boolean, onDigit: (Int) -> Unit) {
                 onClick = { onDigit(0) },
                 enabled = enabled,
                 modifier = Modifier.weight(1f).height(58.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                    disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                ),
             ) { Text("0", fontSize = 24.sp) }
             Spacer(Modifier.weight(1f))
         }

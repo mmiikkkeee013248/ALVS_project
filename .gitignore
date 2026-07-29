@@ -5,7 +5,7 @@ local.properties
 **/build/
 *.iml
 .DS_Store
-Table-Multiplication-debug.apk
+Ucheba-v-Tempe-debug.apk
 server/node_modules/
 server/.env
 server/data/platform.db

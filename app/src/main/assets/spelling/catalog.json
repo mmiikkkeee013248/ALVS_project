@@ -1,34 +1,845 @@
 {
+  "source": "Список словарных слов 1–4 классов ФГОС (авторы: В. П. Канакина, В. Г. Горецкий, «Русский язык. 1–4 класс», «Азбука. 1 класс»). Иллюстрации в стиле советской мультипликации.",
   "words": [
-    { "id": "kot", "word": "кот", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "dom", "word": "дом", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "son", "word": "сон", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "les", "word": "лес", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "med", "word": "мёд", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "ruk", "word": "рука", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "nos", "word": "нос", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "rak", "word": "рак", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "mak", "word": "мак", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "bay", "word": "баян", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "kit", "word": "кит", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "sok", "word": "сок", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "dub", "word": "дуб", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "elk", "word": "ёлка", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "zub", "word": "зуб", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "lug", "word": "луг", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "mir", "word": "мир", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "par", "word": "пар", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "ryb", "word": "рыба", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "tuz", "word": "туз", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "uch", "word": "учи", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "fen", "word": "фен", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "hle", "word": "хлеб", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "car", "word": "царь", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "cha", "word": "чай", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "shar", "word": "шар", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "sch", "word": "щука", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "yak", "word": "як", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "yod", "word": "йод", "image": "images/placeholder.png", "grade": 1 },
-    { "id": "yama", "word": "яма", "image": "images/placeholder.png", "grade": 1 }
+    {
+      "id": "arbuz",
+      "word": "арбуз",
+      "emoji": "🍉",
+      "image": "images/arbuz.png",
+      "grade": 1
+    },
+    {
+      "id": "belka",
+      "word": "белка",
+      "emoji": "🐿️",
+      "image": "images/belka.png",
+      "grade": 1
+    },
+    {
+      "id": "volk",
+      "word": "волк",
+      "emoji": "🐺",
+      "image": "images/volk.png",
+      "grade": 1
+    },
+    {
+      "id": "grib",
+      "word": "гриб",
+      "emoji": "🍄",
+      "image": "images/grib.png",
+      "grade": 1
+    },
+    {
+      "id": "dom",
+      "word": "дом",
+      "emoji": "🏠",
+      "image": "images/dom.png",
+      "grade": 1
+    },
+    {
+      "id": "elka",
+      "word": "ёлка",
+      "emoji": "🎄",
+      "image": "images/elka.png",
+      "grade": 1
+    },
+    {
+      "id": "zhuk",
+      "word": "жук",
+      "emoji": "🪲",
+      "image": "images/zhuk.png",
+      "grade": 1
+    },
+    {
+      "id": "zont",
+      "word": "зонт",
+      "emoji": "☂️",
+      "image": "images/zont.png",
+      "grade": 1
+    },
+    {
+      "id": "igla",
+      "word": "игла",
+      "emoji": "🪡",
+      "image": "images/igla.png",
+      "grade": 1
+    },
+    {
+      "id": "kot",
+      "word": "кот",
+      "emoji": "🐱",
+      "image": "images/kot.png",
+      "grade": 1
+    },
+    {
+      "id": "lisa",
+      "word": "лиса",
+      "emoji": "🦊",
+      "image": "images/lisa.png",
+      "grade": 1
+    },
+    {
+      "id": "myach",
+      "word": "мяч",
+      "emoji": "⚽",
+      "image": "images/myach.png",
+      "grade": 1
+    },
+    {
+      "id": "nos",
+      "word": "нос",
+      "emoji": "👃",
+      "image": "images/nos.png",
+      "grade": 1
+    },
+    {
+      "id": "okno",
+      "word": "окно",
+      "emoji": "🪟",
+      "image": "images/okno.png",
+      "grade": 1
+    },
+    {
+      "id": "petuh",
+      "word": "петух",
+      "emoji": "🐓",
+      "image": "images/petuh.png",
+      "grade": 1
+    },
+    {
+      "id": "ryba",
+      "word": "рыба",
+      "emoji": "🐟",
+      "image": "images/ryba.png",
+      "grade": 1
+    },
+    {
+      "id": "slon",
+      "word": "слон",
+      "emoji": "🐘",
+      "image": "images/slon.png",
+      "grade": 1
+    },
+    {
+      "id": "tort",
+      "word": "торт",
+      "emoji": "🎂",
+      "image": "images/tort.png",
+      "grade": 1
+    },
+    {
+      "id": "utka",
+      "word": "утка",
+      "emoji": "🦆",
+      "image": "images/utka.png",
+      "grade": 1
+    },
+    {
+      "id": "fen",
+      "word": "фен",
+      "emoji": "💨",
+      "image": "images/fen.png",
+      "grade": 1
+    },
+    {
+      "id": "hleb",
+      "word": "хлеб",
+      "emoji": "🍞",
+      "image": "images/hleb.png",
+      "grade": 1
+    },
+    {
+      "id": "cvetok",
+      "word": "цветок",
+      "emoji": "🌸",
+      "image": "images/cvetok.png",
+      "grade": 1
+    },
+    {
+      "id": "chashka",
+      "word": "чашка",
+      "emoji": "☕",
+      "image": "images/chashka.png",
+      "grade": 1
+    },
+    {
+      "id": "shar",
+      "word": "шар",
+      "emoji": "🎈",
+      "image": "images/shar.png",
+      "grade": 1
+    },
+    {
+      "id": "schuka",
+      "word": "щука",
+      "emoji": "🐟",
+      "image": "images/schuka.png",
+      "grade": 1
+    },
+    {
+      "id": "ekran",
+      "word": "экран",
+      "emoji": "📺",
+      "image": "images/ekran.png",
+      "grade": 1
+    },
+    {
+      "id": "yula",
+      "word": "юла",
+      "emoji": "🪀",
+      "image": "images/yula.png",
+      "grade": 1
+    },
+    {
+      "id": "yagoda",
+      "word": "ягода",
+      "emoji": "🍓",
+      "image": "images/yagoda.png",
+      "grade": 1
+    },
+    {
+      "id": "kniga",
+      "word": "книга",
+      "emoji": "📖",
+      "image": "images/kniga.png",
+      "grade": 1
+    },
+    {
+      "id": "penal",
+      "word": "пенал",
+      "emoji": "✏️",
+      "image": "images/penal.png",
+      "grade": 1
+    },
+    {
+      "id": "aist",
+      "word": "аист",
+      "emoji": "🦩",
+      "image": "images/aist.png",
+      "grade": 2
+    },
+    {
+      "id": "banan",
+      "word": "банан",
+      "emoji": "🍌",
+      "image": "images/banan.png",
+      "grade": 2
+    },
+    {
+      "id": "vedro",
+      "word": "ведро",
+      "emoji": "🪣",
+      "image": "images/vedro.png",
+      "grade": 2
+    },
+    {
+      "id": "garazh",
+      "word": "гараж",
+      "emoji": "🚘",
+      "image": "images/garazh.png",
+      "grade": 2
+    },
+    {
+      "id": "divan",
+      "word": "диван",
+      "emoji": "🛋️",
+      "image": "images/divan.png",
+      "grade": 2
+    },
+    {
+      "id": "enot",
+      "word": "енот",
+      "emoji": "🦝",
+      "image": "images/enot.png",
+      "grade": 2
+    },
+    {
+      "id": "zhiraf",
+      "word": "жираф",
+      "emoji": "🦒",
+      "image": "images/zhiraf.png",
+      "grade": 2
+    },
+    {
+      "id": "zavod",
+      "word": "завод",
+      "emoji": "🏭",
+      "image": "images/zavod.png",
+      "grade": 2
+    },
+    {
+      "id": "indyk",
+      "word": "индюк",
+      "emoji": "🦃",
+      "image": "images/indyk.png",
+      "grade": 2
+    },
+    {
+      "id": "kovyor",
+      "word": "ковёр",
+      "emoji": "🛋️",
+      "image": "images/kovyor.png",
+      "grade": 2
+    },
+    {
+      "id": "lozhka",
+      "word": "ложка",
+      "emoji": "🥄",
+      "image": "images/lozhka.png",
+      "grade": 2
+    },
+    {
+      "id": "limon",
+      "word": "лимон",
+      "emoji": "🍋",
+      "image": "images/limon.png",
+      "grade": 2
+    },
+    {
+      "id": "moloko",
+      "word": "молоко",
+      "emoji": "🥛",
+      "image": "images/moloko.png",
+      "grade": 2
+    },
+    {
+      "id": "nora",
+      "word": "нора",
+      "emoji": "🕳️",
+      "image": "images/nora.png",
+      "grade": 2
+    },
+    {
+      "id": "oreh",
+      "word": "орех",
+      "emoji": "🌰",
+      "image": "images/oreh.png",
+      "grade": 2
+    },
+    {
+      "id": "pismo",
+      "word": "письмо",
+      "emoji": "✉️",
+      "image": "images/pismo.png",
+      "grade": 2
+    },
+    {
+      "id": "roza",
+      "word": "роза",
+      "emoji": "🌹",
+      "image": "images/roza.png",
+      "grade": 2
+    },
+    {
+      "id": "sahar",
+      "word": "сахар",
+      "emoji": "🧊",
+      "image": "images/sahar.png",
+      "grade": 2
+    },
+    {
+      "id": "tuflya",
+      "word": "туфля",
+      "emoji": "👠",
+      "image": "images/tuflya.png",
+      "grade": 2
+    },
+    {
+      "id": "uliy",
+      "word": "улей",
+      "emoji": "🐝",
+      "image": "images/uliy.png",
+      "grade": 2
+    },
+    {
+      "id": "fonar",
+      "word": "фонарь",
+      "emoji": "🔦",
+      "image": "images/fonar.png",
+      "grade": 2
+    },
+    {
+      "id": "halat",
+      "word": "халат",
+      "emoji": "🥼",
+      "image": "images/halat.png",
+      "grade": 2
+    },
+    {
+      "id": "caplya",
+      "word": "цапля",
+      "emoji": "🦩",
+      "image": "images/caplya.png",
+      "grade": 2
+    },
+    {
+      "id": "chasy",
+      "word": "часы",
+      "emoji": "⏰",
+      "image": "images/chasy.png",
+      "grade": 2
+    },
+    {
+      "id": "shishka",
+      "word": "шишка",
+      "emoji": "🌲",
+      "image": "images/shishka.png",
+      "grade": 2
+    },
+    {
+      "id": "schetka",
+      "word": "щётка",
+      "emoji": "🪥",
+      "image": "images/schetka.png",
+      "grade": 2
+    },
+    {
+      "id": "yabloko",
+      "word": "яблоко",
+      "emoji": "🍎",
+      "image": "images/yabloko.png",
+      "grade": 2
+    },
+    {
+      "id": "yakor",
+      "word": "якорь",
+      "emoji": "⚓",
+      "image": "images/yakor.png",
+      "grade": 2
+    },
+    {
+      "id": "zvezda",
+      "word": "звезда",
+      "emoji": "⭐",
+      "image": "images/zvezda.png",
+      "grade": 2
+    },
+    {
+      "id": "pirog",
+      "word": "пирог",
+      "emoji": "🥧",
+      "image": "images/pirog.png",
+      "grade": 2
+    },
+    {
+      "id": "albom",
+      "word": "альбом",
+      "emoji": "🎨",
+      "image": "images/albom.png",
+      "grade": 3
+    },
+    {
+      "id": "berez",
+      "word": "берёза",
+      "emoji": "🌳",
+      "image": "images/berez.png",
+      "grade": 3
+    },
+    {
+      "id": "vagon",
+      "word": "вагон",
+      "emoji": "🚃",
+      "image": "images/vagon.png",
+      "grade": 3
+    },
+    {
+      "id": "gnezdo",
+      "word": "гнездо",
+      "emoji": "🪹",
+      "image": "images/gnezdo.png",
+      "grade": 3
+    },
+    {
+      "id": "doroga",
+      "word": "дорога",
+      "emoji": "🛣️",
+      "image": "images/doroga.png",
+      "grade": 3
+    },
+    {
+      "id": "zamok",
+      "word": "замок",
+      "emoji": "🏰",
+      "image": "images/zamok.png",
+      "grade": 3
+    },
+    {
+      "id": "zver",
+      "word": "зверь",
+      "emoji": "🐻",
+      "image": "images/zver.png",
+      "grade": 3
+    },
+    {
+      "id": "izba",
+      "word": "изба",
+      "emoji": "🪵",
+      "image": "images/izba.png",
+      "grade": 3
+    },
+    {
+      "id": "koster",
+      "word": "костёр",
+      "emoji": "🔥",
+      "image": "images/koster.png",
+      "grade": 3
+    },
+    {
+      "id": "korona",
+      "word": "корона",
+      "emoji": "👑",
+      "image": "images/korona.png",
+      "grade": 3
+    },
+    {
+      "id": "lodka",
+      "word": "лодка",
+      "emoji": "🚣",
+      "image": "images/lodka.png",
+      "grade": 3
+    },
+    {
+      "id": "most",
+      "word": "мост",
+      "emoji": "🌉",
+      "image": "images/most.png",
+      "grade": 3
+    },
+    {
+      "id": "nitki",
+      "word": "нитки",
+      "emoji": "🧵",
+      "image": "images/nitki.png",
+      "grade": 3
+    },
+    {
+      "id": "oblako",
+      "word": "облако",
+      "emoji": "☁️",
+      "image": "images/oblako.png",
+      "grade": 3
+    },
+    {
+      "id": "palto",
+      "word": "пальто",
+      "emoji": "🧥",
+      "image": "images/palto.png",
+      "grade": 3
+    },
+    {
+      "id": "raketa",
+      "word": "ракета",
+      "emoji": "🚀",
+      "image": "images/raketa.png",
+      "grade": 3
+    },
+    {
+      "id": "svecha",
+      "word": "свеча",
+      "emoji": "🕯️",
+      "image": "images/svecha.png",
+      "grade": 3
+    },
+    {
+      "id": "topor",
+      "word": "топор",
+      "emoji": "🪓",
+      "image": "images/topor.png",
+      "grade": 3
+    },
+    {
+      "id": "udochka",
+      "word": "удочка",
+      "emoji": "🎣",
+      "image": "images/udochka.png",
+      "grade": 3
+    },
+    {
+      "id": "flag",
+      "word": "флаг",
+      "emoji": "🚩",
+      "image": "images/flag.png",
+      "grade": 3
+    },
+    {
+      "id": "holm",
+      "word": "холм",
+      "emoji": "⛰️",
+      "image": "images/holm.png",
+      "grade": 3
+    },
+    {
+      "id": "cep",
+      "word": "цепь",
+      "emoji": "⛓️",
+      "image": "images/cep.png",
+      "grade": 3
+    },
+    {
+      "id": "sunduk",
+      "word": "сундук",
+      "emoji": "🧰",
+      "image": "images/sunduk.png",
+      "grade": 3
+    },
+    {
+      "id": "shlem",
+      "word": "шлем",
+      "emoji": "🪖",
+      "image": "images/shlem.png",
+      "grade": 3
+    },
+    {
+      "id": "schit",
+      "word": "щит",
+      "emoji": "🛡️",
+      "image": "images/schit.png",
+      "grade": 3
+    },
+    {
+      "id": "yantar",
+      "word": "янтарь",
+      "emoji": "💎",
+      "image": "images/yantar.png",
+      "grade": 3
+    },
+    {
+      "id": "kompas",
+      "word": "компас",
+      "emoji": "🧭",
+      "image": "images/kompas.png",
+      "grade": 3
+    },
+    {
+      "id": "koleso",
+      "word": "колесо",
+      "emoji": "🛞",
+      "image": "images/koleso.png",
+      "grade": 3
+    },
+    {
+      "id": "kust",
+      "word": "куст",
+      "emoji": "🪴",
+      "image": "images/kust.png",
+      "grade": 3
+    },
+    {
+      "id": "sapog",
+      "word": "сапог",
+      "emoji": "👢",
+      "image": "images/sapog.png",
+      "grade": 3
+    },
+    {
+      "id": "almaz",
+      "word": "алмаз",
+      "emoji": "💎",
+      "image": "images/almaz.png",
+      "grade": 4
+    },
+    {
+      "id": "bagazh",
+      "word": "багаж",
+      "emoji": "🧳",
+      "image": "images/bagazh.png",
+      "grade": 4
+    },
+    {
+      "id": "vulkan",
+      "word": "вулкан",
+      "emoji": "🌋",
+      "image": "images/vulkan.png",
+      "grade": 4
+    },
+    {
+      "id": "gitara",
+      "word": "гитара",
+      "emoji": "🎸",
+      "image": "images/gitara.png",
+      "grade": 4
+    },
+    {
+      "id": "dvor",
+      "word": "двор",
+      "emoji": "🏡",
+      "image": "images/dvor.png",
+      "grade": 4
+    },
+    {
+      "id": "kamin",
+      "word": "камин",
+      "emoji": "🪵",
+      "image": "images/kamin.png",
+      "grade": 4
+    },
+    {
+      "id": "kaktus",
+      "word": "кактус",
+      "emoji": "🌵",
+      "image": "images/kaktus.png",
+      "grade": 4
+    },
+    {
+      "id": "kovsh",
+      "word": "ковш",
+      "emoji": "🪣",
+      "image": "images/kovsh.png",
+      "grade": 4
+    },
+    {
+      "id": "mayak",
+      "word": "маяк",
+      "emoji": "🚨",
+      "image": "images/mayak.png",
+      "grade": 4
+    },
+    {
+      "id": "molot",
+      "word": "молот",
+      "emoji": "🔨",
+      "image": "images/molot.png",
+      "grade": 4
+    },
+    {
+      "id": "ostrov",
+      "word": "остров",
+      "emoji": "🏝️",
+      "image": "images/ostrov.png",
+      "grade": 4
+    },
+    {
+      "id": "parus",
+      "word": "парус",
+      "emoji": "⛵",
+      "image": "images/parus.png",
+      "grade": 4
+    },
+    {
+      "id": "pushka",
+      "word": "пушка",
+      "emoji": "💥",
+      "image": "images/pushka.png",
+      "grade": 4
+    },
+    {
+      "id": "rytsar",
+      "word": "рыцарь",
+      "emoji": "🛡️",
+      "image": "images/rytsar.png",
+      "grade": 4
+    },
+    {
+      "id": "skazka",
+      "word": "сказка",
+      "emoji": "📜",
+      "image": "images/skazka.png",
+      "grade": 4
+    },
+    {
+      "id": "truba",
+      "word": "труба",
+      "emoji": "🎺",
+      "image": "images/truba.png",
+      "grade": 4
+    },
+    {
+      "id": "uzor",
+      "word": "узор",
+      "emoji": "🎨",
+      "image": "images/uzor.png",
+      "grade": 4
+    },
+    {
+      "id": "fontan",
+      "word": "фонтан",
+      "emoji": "⛲",
+      "image": "images/fontan.png",
+      "grade": 4
+    },
+    {
+      "id": "homyak",
+      "word": "хомяк",
+      "emoji": "🐹",
+      "image": "images/homyak.png",
+      "grade": 4
+    },
+    {
+      "id": "cirk",
+      "word": "цирк",
+      "emoji": "🎪",
+      "image": "images/cirk.png",
+      "grade": 4
+    },
+    {
+      "id": "chasha",
+      "word": "чаша",
+      "emoji": "🏆",
+      "image": "images/chasha.png",
+      "grade": 4
+    },
+    {
+      "id": "shashka",
+      "word": "шашка",
+      "emoji": "♟️",
+      "image": "images/shashka.png",
+      "grade": 4
+    },
+    {
+      "id": "shmel",
+      "word": "шмель",
+      "emoji": "🐝",
+      "image": "images/shmel.png",
+      "grade": 4
+    },
+    {
+      "id": "yastreb",
+      "word": "ястреб",
+      "emoji": "🦅",
+      "image": "images/yastreb.png",
+      "grade": 4
+    },
+    {
+      "id": "bizon",
+      "word": "бизон",
+      "emoji": "🦬",
+      "image": "images/bizon.png",
+      "grade": 4
+    },
+    {
+      "id": "vint",
+      "word": "винт",
+      "emoji": "🔩",
+      "image": "images/vint.png",
+      "grade": 4
+    },
+    {
+      "id": "zerno",
+      "word": "зерно",
+      "emoji": "🌾",
+      "image": "images/zerno.png",
+      "grade": 4
+    },
+    {
+      "id": "kaska",
+      "word": "каска",
+      "emoji": "🪖",
+      "image": "images/kaska.png",
+      "grade": 4
+    },
+    {
+      "id": "mech",
+      "word": "меч",
+      "emoji": "⚔️",
+      "image": "images/mech.png",
+      "grade": 4
+    },
+    {
+      "id": "palma",
+      "word": "пальма",
+      "emoji": "🌴",
+      "image": "images/palma.png",
+      "grade": 4
+    }
   ]
 }

@@ -8,8 +8,8 @@ if errorlevel 1 (
     pause
     exit /b 1
 )
-copy /Y "app\build\outputs\apk\debug\app-debug.apk" "Table-Multiplication-debug.apk" >nul
+copy /Y "app\build\outputs\apk\debug\app-debug.apk" "Ucheba-v-Tempe-debug.apk" >nul
 echo.
-echo APK ready: %CD%\Table-Multiplication-debug.apk
+echo APK ready: %CD%\Ucheba-v-Tempe-debug.apk
  pause
 endlocal

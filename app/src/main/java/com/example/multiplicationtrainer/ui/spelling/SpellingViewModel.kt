@@ -23,6 +23,7 @@ import java.util.ArrayDeque
 
 data class SpellingUiState(
     val variant: Int = 10,
+    val grade: Int? = null,
     val runId: Long = 0L,
     val words: List<SpellingWord> = emptyList(),
     val mainIndex: Int = 0,
@@ -30,6 +31,7 @@ data class SpellingUiState(
     val typedAnswer: String = "",
     val phase: GamePhase = GamePhase.MAIN,
     val feedback: Feedback = Feedback.NONE,
+    val revealedAnswer: String? = null,
     val inputEnabled: Boolean = true,
     val accumulatedTimeMillis: Long = 0L,
     val runningQuestionStartedAt: Long? = null,
@@ -53,22 +55,28 @@ class SpellingViewModel(application: Application) : AndroidViewModel(application
     private val _uiState = MutableStateFlow(SpellingUiState())
     val uiState: StateFlow<SpellingUiState> = _uiState.asStateFlow()
 
-    fun prepare(variant: Int) {
-        _uiState.value = SpellingUiState(variant = variant)
+    fun prepare(variant: Int, grade: Int? = null) {
+        _uiState.value = SpellingUiState(variant = variant, grade = grade)
+    }
+
+    fun setGrade(grade: Int?) {
+        _uiState.value = _uiState.value.copy(grade = grade)
     }
 
     fun startGame() {
         val variant = _uiState.value.variant
+        val grade = _uiState.value.grade
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isStarting = true, startError = null)
             runCatching { runRepository.startRun("spelling_ru", variant) }
                 .onSuccess { run ->
                     feedbackJob?.cancel()
                     retryQueue.clear()
-                    val words = contentRepository.generateSession(variant)
+                    val words = contentRepository.generateSession(variant, grade)
                     val now = SystemClock.elapsedRealtime()
                     _uiState.value = SpellingUiState(
                         variant = variant,
+                        grade = grade,
                         runId = run.runId,
                         words = words,
                         currentWord = words.first(),
@@ -103,6 +111,7 @@ class SpellingViewModel(application: Application) : AndroidViewModel(application
         _uiState.value = state.copy(
             inputEnabled = false,
             feedback = if (correct) Feedback.CORRECT else Feedback.WRONG,
+            revealedAnswer = if (correct) null else word.word,
             accumulatedTimeMillis = state.accumulatedTimeMillis + responseTime,
             runningQuestionStartedAt = null,
             errors = state.errors + if (correct) 0 else 1,
@@ -110,7 +119,7 @@ class SpellingViewModel(application: Application) : AndroidViewModel(application
         )
 
         feedbackJob = viewModelScope.launch {
-            delay(if (correct) 200L else 400L)
+            delay(if (correct) 200L else 1400L)
             advance(correct)
         }
     }
@@ -156,6 +165,7 @@ class SpellingViewModel(application: Application) : AndroidViewModel(application
             currentWord = word,
             typedAnswer = "",
             feedback = Feedback.NONE,
+            revealedAnswer = null,
             inputEnabled = true,
             runningQuestionStartedAt = SystemClock.elapsedRealtime(),
         )
@@ -202,6 +212,9 @@ class SpellingViewModel(application: Application) : AndroidViewModel(application
     fun reset() {
         feedbackJob?.cancel()
         retryQueue.clear()
-        _uiState.value = SpellingUiState(variant = _uiState.value.variant)
+        _uiState.value = SpellingUiState(
+            variant = _uiState.value.variant,
+            grade = _uiState.value.grade,
+        )
     }
 }

@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -29,23 +30,44 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import com.example.multiplicationtrainer.BuildConfig
+import com.example.multiplicationtrainer.R
 import com.example.multiplicationtrainer.domain.ChallengeInfo
+import com.example.multiplicationtrainer.ui.components.AppGradientBackground
+import com.example.multiplicationtrainer.ui.components.FormScaffold
+import com.example.multiplicationtrainer.ui.components.HubCardStyle
+import com.example.multiplicationtrainer.ui.components.HubMenuCard
 
 @Composable
 fun SplashScreen() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        CircularProgressIndicator()
-        Spacer(Modifier.height(12.dp))
-        Text("Загрузка...")
+    AppGradientBackground {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = stringResource(R.string.app_name),
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = "Школьные испытания на время",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(28.dp))
+            CircularProgressIndicator()
+            Spacer(Modifier.height(12.dp))
+            Text("Загрузка...")
+        }
     }
 }
 
@@ -59,7 +81,7 @@ fun LoginScreen(
     var login by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    AuthScaffold(title = "Вход") {
+    FormScaffold(title = "Вход") {
         OutlinedTextField(login, { login = it }, label = { Text("Логин") }, modifier = Modifier.fillMaxWidth())
         Spacer(Modifier.height(10.dp))
         OutlinedTextField(
@@ -94,7 +116,7 @@ fun RegisterScreen(
     var password by remember { mutableStateOf("") }
     var displayName by remember { mutableStateOf("") }
 
-    AuthScaffold(title = "Регистрация") {
+    FormScaffold(title = "Регистрация") {
         OutlinedTextField(login, { login = it }, label = { Text("Логин") }, modifier = Modifier.fillMaxWidth())
         Spacer(Modifier.height(10.dp))
         OutlinedTextField(
@@ -136,29 +158,78 @@ fun HubScreen(
     onUpdate: () -> Unit,
     onLogout: () -> Unit,
 ) {
-    AuthScaffold(title = "Привет, $displayName") {
-        if (updateAvailable) {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(16.dp)) {
-                    Text("Доступно обновление", fontWeight = FontWeight.Bold)
-                    Text(updateLabel)
-                    Spacer(Modifier.height(8.dp))
-                    Button(onClick = onUpdate, modifier = Modifier.fillMaxWidth()) {
-                        Text("Обновить")
+    AppGradientBackground {
+        Scaffold(containerColor = Color.Transparent) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        text = "Привет, $displayName",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Spacer(Modifier.height(24.dp))
+
+                    HubMenuCard(
+                        emoji = "🎯",
+                        title = "Испытания",
+                        subtitle = "Умножение и словарные слова",
+                        onClick = onChallenges,
+                        style = HubCardStyle.Filled,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    HubMenuCard(
+                        emoji = "🏆",
+                        title = "Результаты",
+                        subtitle = "Рейтинг за день, неделю и сезон",
+                        onClick = onLeaderboards,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    HubMenuCard(
+                        emoji = "👤",
+                        title = "Профиль",
+                        subtitle = "Имя в таблице лидеров",
+                        onClick = onProfile,
+                        style = HubCardStyle.Outlined,
+                    )
+                    if (updateAvailable) {
+                        Spacer(Modifier.height(12.dp))
+                        HubMenuCard(
+                            emoji = "⬇️",
+                            title = "Обновить приложение",
+                            subtitle = "Доступна новая версия $updateLabel",
+                            onClick = onUpdate,
+                            style = HubCardStyle.Filled,
+                        )
                     }
                 }
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    TextButton(onClick = onLogout) { Text("Выйти") }
+                    Text(
+                        text = "Версия ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
-            Spacer(Modifier.height(12.dp))
         }
-        HubButton("Испытания", onChallenges)
-        Spacer(Modifier.height(10.dp))
-        HubButton("Результаты", onLeaderboards)
-        Spacer(Modifier.height(10.dp))
-        OutlinedButton(onClick = onProfile, modifier = Modifier.fillMaxWidth()) { Text("Профиль") }
-        Spacer(Modifier.height(10.dp))
-        TextButton(onClick = onLogout) { Text("Выйти") }
-        Spacer(Modifier.height(16.dp))
-        Text("Версия ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -172,7 +243,7 @@ fun ProfileScreen(
     onSave: () -> Unit,
     onBack: () -> Unit,
 ) {
-    AuthScaffold(title = "Профиль") {
+    FormScaffold(title = "Профиль") {
         Text("Логин: $login")
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(
@@ -195,15 +266,40 @@ fun ChallengeListScreen(
     onOpen: (String) -> Unit,
     onBack: () -> Unit,
 ) {
-    AuthScaffold(title = "Испытания") {
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    FormScaffold(title = "Испытания") {
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
             items(challenges) { challenge ->
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(16.dp)) {
-                        Text(challenge.title, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                        Text(challenge.description)
-                        Spacer(Modifier.height(8.dp))
-                        Button(onClick = { onOpen(challenge.code) }) { Text("Выбрать режим") }
+                val emoji = when (challenge.code) {
+                    "multiplication" -> "✖️"
+                    "spelling_ru" -> "📖"
+                    else -> "🎯"
+                }
+                Card(
+                    onClick = { onOpen(challenge.code) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(18.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    ) {
+                        Text(emoji, fontSize = 32.sp)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(challenge.title, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                            Text(
+                                challenge.description,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Text("→", fontSize = 22.sp, color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
@@ -221,9 +317,63 @@ fun ChallengeSetupScreen(
     onBack: () -> Unit,
     error: String?,
 ) {
-    AuthScaffold(title = title) {
+    FormScaffold(title = title) {
         Text("Выберите количество заданий")
         Spacer(Modifier.height(12.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(10, 20, 30).forEach { variant ->
+                FilterChip(
+                    selected = selectedVariant == variant,
+                    onClick = { onSelectVariant(variant) },
+                    label = { Text(variant.toString()) },
+                )
+            }
+        }
+        if (error != null) {
+            Spacer(Modifier.height(8.dp))
+            Text(error, color = MaterialTheme.colorScheme.error)
+        }
+        Spacer(Modifier.height(20.dp))
+        Button(onClick = onStart, modifier = Modifier.fillMaxWidth()) { Text("Старт") }
+        TextButton(onClick = onBack) { Text("Назад") }
+    }
+}
+
+@Composable
+fun SpellingSetupScreen(
+    selectedVariant: Int,
+    selectedGrade: Int?,
+    onSelectVariant: (Int) -> Unit,
+    onSelectGrade: (Int?) -> Unit,
+    onStart: () -> Unit,
+    onBack: () -> Unit,
+    error: String?,
+) {
+    FormScaffold(title = "Словарные слова") {
+        Text("Выберите класс", fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            val grades = listOf(
+                null to "Все",
+                1 to "1 кл",
+                2 to "2 кл",
+                3 to "3 кл",
+                4 to "4 кл",
+            )
+            grades.forEach { (grade, label) ->
+                FilterChip(
+                    selected = selectedGrade == grade,
+                    onClick = { onSelectGrade(grade) },
+                    label = { Text(label) },
+                )
+            }
+        }
+        Spacer(Modifier.height(16.dp))
+        Text("Выберите количество заданий", fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf(10, 20, 30).forEach { variant ->
                 FilterChip(
@@ -256,7 +406,7 @@ fun LeaderboardHubScreen(
     onPeriodChange: (String) -> Unit,
     onBack: () -> Unit,
 ) {
-    AuthScaffold(title = "Результаты") {
+    FormScaffold(title = "Результаты") {
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             FilterChip(challenge == "multiplication", { onChallengeChange("multiplication") }, label = { Text("×") })
             FilterChip(challenge == "spelling_ru", { onChallengeChange("spelling_ru") }, label = { Text("Слова") })
@@ -304,7 +454,7 @@ fun UpdateScreen(
     onDownload: () -> Unit,
     onBack: () -> Unit,
 ) {
-    AuthScaffold(title = "Обновление") {
+    FormScaffold(title = "Обновление") {
         Text("Новая версия: $releaseName", fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
         Text(changelog.ifBlank { "Исправления и улучшения" })
@@ -314,31 +464,6 @@ fun UpdateScreen(
         Button(onClick = onDownload, modifier = Modifier.fillMaxWidth()) { Text("Скачать и установить") }
         TextButton(onClick = onBack) { Text("Назад") }
     }
-}
-
-@Composable
-private fun AuthScaffold(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Scaffold { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(24.dp),
-        ) {
-            Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(20.dp))
-            content()
-        }
-    }
-}
-
-@Composable
-private fun HubButton(text: String, onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth().height(58.dp),
-        shape = RoundedCornerShape(16.dp),
-    ) { Text(text, fontSize = 18.sp) }
 }
 
 private fun formatTime(millis: Long): String {

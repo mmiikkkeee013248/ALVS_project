@@ -19,6 +19,7 @@ class SpellingContentRepository(private val context: Context) {
                     SpellingWord(
                         id = item.getString("id"),
                         word = item.getString("word"),
+                        emoji = item.optString("emoji", "📖"),
                         image = item.getString("image"),
                         grade = item.optInt("grade", 1),
                     )
@@ -29,9 +30,11 @@ class SpellingContentRepository(private val context: Context) {
         return words
     }
 
-    fun generateSession(count: Int): List<SpellingWord> {
-        val pool = loadWords()
-        require(count <= pool.size) { "Not enough words in catalog" }
-        return pool.shuffled().take(count)
+    fun generateSession(count: Int, grade: Int? = null): List<SpellingWord> {
+        val pool = loadWords().let { list ->
+            if (grade != null) list.filter { it.grade == grade } else list
+        }
+        val safeCount = count.coerceAtMost(pool.size)
+        return pool.shuffled().take(safeCount)
     }
 }

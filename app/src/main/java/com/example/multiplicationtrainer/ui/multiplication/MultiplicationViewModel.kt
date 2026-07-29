@@ -29,6 +29,7 @@ data class MultiplicationUiState(
     val phase: GamePhase = GamePhase.MAIN,
     val typedAnswer: String = "",
     val feedback: Feedback = Feedback.NONE,
+    val correctAnswer: Int? = null,
     val inputEnabled: Boolean = true,
     val accumulatedTimeMillis: Long = 0L,
     val runningQuestionStartedAt: Long? = null,
@@ -105,6 +106,7 @@ class MultiplicationViewModel(application: Application) : AndroidViewModel(appli
         _uiState.value = state.copy(
             inputEnabled = false,
             feedback = if (correct) Feedback.CORRECT else Feedback.WRONG,
+            correctAnswer = if (correct) null else problem.answer,
             accumulatedTimeMillis = state.accumulatedTimeMillis + responseTime,
             runningQuestionStartedAt = null,
             errors = state.errors + if (correct) 0 else 1,
@@ -112,7 +114,7 @@ class MultiplicationViewModel(application: Application) : AndroidViewModel(appli
         )
 
         feedbackJob = viewModelScope.launch {
-            delay(if (correct) 200L else 400L)
+            delay(if (correct) 200L else 1400L)
             advance(correct)
         }
     }
@@ -159,6 +161,7 @@ class MultiplicationViewModel(application: Application) : AndroidViewModel(appli
             currentProblem = problem,
             typedAnswer = "",
             feedback = Feedback.NONE,
+            correctAnswer = null,
             inputEnabled = true,
             runningQuestionStartedAt = SystemClock.elapsedRealtime(),
         )

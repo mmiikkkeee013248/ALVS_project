@@ -14,10 +14,13 @@ import com.example.multiplicationtrainer.domain.ChallengeInfo
 import com.example.multiplicationtrainer.domain.LeaderboardEntry
 import com.example.multiplicationtrainer.domain.ReleaseInfo
 import com.example.multiplicationtrainer.domain.UserProfile
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.coroutines.coroutineContext
 
 data class AppUiState(
     val screen: AppScreen = AppScreen.Splash,
@@ -52,6 +55,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         bootstrap()
+        startUpdatePolling()
+    }
+
+    private fun startUpdatePolling() {
+        viewModelScope.launch {
+            while (coroutineContext.isActive) {
+                runCatching { updateRepository.checkLatest() }
+                    .onSuccess { release ->
+                        _uiState.value = _uiState.value.copy(releaseInfo = release)
+                    }
+                delay(UPDATE_CHECK_INTERVAL_MS)
+            }
+        }
     }
 
     fun bootstrap() {
@@ -158,6 +174,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    companion object {
+        private const val UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1000L
+    }
+
     fun setLeaderboardFilters(challenge: String? = null, variant: Int? = null, period: String? = null) {
         val current = _uiState.value
         _uiState.value = current.copy(
@@ -198,11 +218,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private suspend fun enterHub(user: UserProfile) {
+        val previousRelease = _uiState.value.releaseInfo
         _uiState.value = AppUiState(
             screen = AppScreen.Hub,
             isLoading = false,
             user = user,
             profileDraft = user.displayName,
+            releaseInfo = previousRelease,
         )
         loadChallenges()
         checkUpdates()

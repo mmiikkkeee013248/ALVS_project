@@ -34,6 +34,7 @@ data class GameResult(
 data class SpellingWord(
     val id: String,
     val word: String,
+    val emoji: String,
     val image: String,
     val grade: Int,
 )
@@ -71,6 +72,22 @@ object SpellingCatalog {
     }
 
     fun isCorrect(expected: String, actual: String): Boolean {
-        return normalizeAnswer(expected) == normalizeAnswer(actual)
+        val normExp = normalizeAnswer(expected)
+        val normAct = normalizeAnswer(actual)
+        if (normExp == normAct) return true
+        if (normExp.length > 1 && normExp.substring(1) == normAct) return true
+        return false
+    }
+
+    /** Первая буква открыта, остальные — прочерки: «г _ _ _» */
+    fun letterMask(word: String): String {
+        val letters = word.trim()
+        if (letters.isEmpty()) return ""
+        return buildString {
+            append(letters.first().lowercaseChar())
+            for (i in 1 until letters.length) {
+                append(" _")
+            }
+        }
     }
 }
