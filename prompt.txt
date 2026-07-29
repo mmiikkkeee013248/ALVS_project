@@ -1,0 +1,6 @@
+Use your built-in image generation tool to generate a hand-drawn painted gouache illustration in 1970s Soviet cel animation style (single subject, warm cream background #FFF8E8, NO frames, NO boxes, NO borders, NO icons, NO text) for each of the following words and save directly to PNG:
+1) petuh -> app/src/main/assets/spelling/images/petuh.png (colorful rooster)
+2) ryba -> app/src/main/assets/spelling/images/ryba.png (fish)
+3) slon -> app/src/main/assets/spelling/images/slon.png (cute elephant)
+4) tort -> app/src/main/assets/spelling/images/tort.png (birthday cake)
+5) utka -> app/src/main/assets/spelling/images/utka.png (duck)
